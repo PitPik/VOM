@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="Description" content="Virtual Object Model VOM framework" />
+	<meta name="Keywords" content="tree, menu, categories" />
+	<meta name="author" content="Peter Dematté" />
+	<meta http-equiv="language" content="en" />
+	<title>VOM Virtual Object Model</title>
+</head>
+<body>
+
+
+<script type="text/javascript" src="model.js"></script>
+<script type="text/javascript" src="VOM.js"></script>
+<!-- <script type="text/javascript" src="VOM.min.js"></script> -->
+
+
+<script type="text/javascript">
+(function(window, undefined) {
+	'use strict';
+
+	var vom = window.vom = new VOM(window.treeModel);
+	console.log(vom);
+
+})(window);
+</script>
+</body>
+</html>
