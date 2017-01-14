@@ -1,4 +1,4 @@
-(function (root, factory) {
+(function (root, factory) { // 5.78KB, 2.65KB, 1.5KB
 	if (typeof exports === 'object') {
 		module.exports = factory(root);
 	} else if (typeof define === 'function' && define.amd) {
@@ -35,6 +35,7 @@
 			while (item = map.shift()) {
 				map[item] = true; // for faster lookup table than array
 			}
+			_this.model.root = {childNodes: _this.model};
 			enrichModel(_this.model, _this);
 		},
 		NODES = {}, // node map for fast access
@@ -62,10 +63,11 @@
 			return moveItem(this, item, sibling.parentNode, sibling.index + 1);
 		},
 		appendChild: function(item, parent) {
+			parent = parent || _this.model.root;
 			return moveItem(this, item, parent, getChildNodes(parent).length);
 		},
 		prependChild: function(item, parent) {
-			return moveItem(this, item, parent, 0);
+			return moveItem(this, item, parent || _this.model.root, 0);
 		},
 		removeChild: function(item) {
 			return removeChild(this, item);
@@ -104,7 +106,7 @@
 			parentCheck(_this, item, parent);
 		} // TODO: add more checks if allowed...
 
-		if(item.index !== -1 && item.parentNode === parent && index > item.index) {
+		if(item.parentNode === parent && index > item.index && item.index !== -1) {
 			index--;
 		}
 		item = item.index !== -1 && item.parentNode &&
@@ -116,8 +118,7 @@
 
 	function removeChild(_this, item, preserve) {
 		!preserve && delete NODES[item[_this.options.idProperty]]; // from lookup
-		return getChildNodes(item.parentNode) // || {childNodes: _this.model}
-			.splice(item.index, 1)[0] || item; // if new
+		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
 	}
 
 	function parentCheck(_this, item, parent) {
@@ -147,10 +148,7 @@
 			}
 
 			NODES[item[idProperty]] = item; // push to flat index model
-			// if (parent) {
-			// 	item.parentNode = parent;
-			// }
-			item.parentNode = parent || {childNodes: _this.model};
+			item.parentNode = parent || _this.model.root;
 			// recursion
 			item.childNodes && enrichModel(item.childNodes, _this, item);
 			item.index = 0; // indexOf(_this, item);

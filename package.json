@@ -1,0 +1,28 @@
+{
+  "name": "VOM",
+  "version": "0.1.0",
+  "description": "A tiny model framework",
+  "main": "Gruntfile.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/PitPik/VOM.git"
+  },
+  "dependencies": {
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt": "^1.0.1",
+    "grunt-smushit": "^2.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "tree",
+    "menu",
+    "categories",
+    "object",
+    "model"
+  ],
+  "author": "Peter Dematté",
+  "license": "ISC"
+}
