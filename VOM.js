@@ -63,11 +63,11 @@
 			return moveItem(this, item, sibling.parentNode, sibling.index + 1);
 		},
 		appendChild: function(item, parent) {
-			parent = parent || _this.model.root;
+			parent = parent || this.model.root;
 			return moveItem(this, item, parent, getChildNodes(parent).length);
 		},
 		prependChild: function(item, parent) {
-			return moveItem(this, item, parent || _this.model.root, 0);
+			return moveItem(this, item, parent || this.model.root, 0);
 		},
 		removeChild: function(item) {
 			return removeChild(this, item);
