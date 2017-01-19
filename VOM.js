@@ -1,4 +1,4 @@
-(function (root, factory) { // 5.78KB, 2.65KB, 1.5KB
+(function (root, factory) { // 5.97KB, 2.74KB, 1.21KB
 	if (typeof exports === 'object') {
 		module.exports = factory(root);
 	} else if (typeof define === 'function' && define.amd) {
@@ -18,6 +18,7 @@
 				setterCallback: function() {},
 				enrichModelCallback: function() {},
 				enhanceMap: [],
+				enhanceAll: false,
 				throwErrors: false
 			};
 			this.model = model || [];
@@ -46,15 +47,20 @@
 		getElementById: function(id) {
 			return NODES[id];
 		},
-		getElementsByProperty: function(property, value) {
-			var result = [];
+		getElementsByProperty: function(property, value, countOnly) {
+			var result = [],
+				count = 0;
 
 			for (var id in NODES) {
 				if (NODES[id][property] === value || null === value) {
-					result.push(NODES[id]);
+					if (countOnly) {
+						count++;
+					} else {
+						result.push(NODES[id]);
+					}
 				}
 			}
-			return result;
+			return countOnly ? count : result;
 		},
 		insetBefore: function(item, sibling) {
 			return moveItem(this, item, sibling.parentNode, sibling.index);
@@ -69,8 +75,17 @@
 		prependChild: function(item, parent) {
 			return moveItem(this, item, parent || this.model.root, 0);
 		},
+		replaceChild: function(item, newItem) {
+			var index = item.index,
+				parentNode = item.parentNode;
+
+			removeChild(this, item);
+			return moveItem(this, newItem, parentNode, index);
+		},
 		removeChild: function(item) {
-			return removeChild(this, item);
+			removeChild(this, item);
+			this.options.setterCallback.call(this, 'removeChild', item);
+			return item;
 		},
 		destroy: function() {
 			return destroy(this.options, this.model);
@@ -85,6 +100,8 @@
 				destroy(options, items[n].childNodes);
 			}
 			delete NODES[items[n][options.idProperty]];
+			// delete items[n].parentNode; // for reuse...
+			// delete items[n].index; // for reuse...
 		}
 		return items;
 	};
@@ -116,8 +133,8 @@
 		return item;
 	};
 
-	function removeChild(_this, item, preserve) {
-		!preserve && delete NODES[item[_this.options.idProperty]]; // from lookup
+	function removeChild(_this, item, preserve) { // TODO: recursion
+		!preserve && destroy(_this.options, [item]); // from lookup
 		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
 	}
 
@@ -167,7 +184,7 @@
 		var cache = {}; // getter / setter value cache
 
 		for (var item in model) {
-			if (_this.options.enhanceMap[item] ||
+			if (_this.options.enhanceAll || _this.options.enhanceMap[item] ||
 					item === _this.options.idProperty ||
 					item === 'parentNode' || item === index) { // 'childNodes'
 				cache[item] = model[item]; // 'index' will never change
