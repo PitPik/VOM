@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<style type="text/css">
+			button {
+				padding: 6px 12px;
+				margin: 0 3px 2px;
+				display: block;
+				float: left;
+			}
+		</style>
+		<title>Demo VOM</title>
+	</head>
+	<body>
+		<p>This demo shows (a) button(s) with a text that represents the number of clicks being fired on itself.</p>
+		<p>In case there was no button before this request of the page, it starts with a single button that was clicked 0 times and can be clicked 10 times before it would disappear again.</p>
+		<p>More buttons can be added by adding items to the model in the browser's console. <pre>demo.appendChild({
+    button: true,
+    clicks: 8,
+    maxClicks: 12
+});</pre></p>
+		<p>The state of an existing button can be manipulated in the browser's console.<pre>demo.model[0].clicks = 8;</pre> although, if the value is smaller or as big as the current value, an error will be shown in the console of the browser.</p>
+		<p>The states of the buttons are stored in the local storage and are restored on a new page request (refresh page).</p>
+		<script type="text/javascript" src="VOM.js"></script>
+		<script type="text/javascript" src="demo.js"></script>
+	</body>
+</html>
