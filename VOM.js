@@ -1,4 +1,4 @@
-(function (root, factory) { // 5.97KB, 2.74KB, 1.21KB
+(function (root, factory) { // 6.56KB, 2.99KB, 1.29KB
 	if (typeof exports === 'object') {
 		module.exports = factory(root);
 	} else if (typeof define === 'function' && define.amd) {
@@ -29,6 +29,9 @@
 			var item = '',
 				map = [];
 
+			NODES.push({}); // new access map for current instance
+			reinforceProperty(_this, 'id', NODES.length - 1);
+
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
@@ -36,31 +39,27 @@
 			while (item = map.shift()) {
 				map[item] = true; // for faster lookup table than array
 			}
-			_this.model.root = {childNodes: _this.model};
+			reinforceProperty(_this.model, 'root', {childNodes: _this.model});
+			// _this.model.root = {childNodes: _this.model};
 			enrichModel(_this.model, _this);
 		},
-		NODES = {}, // node map for fast access
-		id = 0,
-		index = 'index';
+		NODES = [], // node maps for fast access
+		idCounter = 0, // item id counter (if items have no own id)
+		strIndex = 'index';
 
 	VOM.prototype = {
 		getElementById: function(id) {
-			return NODES[id];
+			return NODES[this.id][id];
 		},
-		getElementsByProperty: function(property, value, countOnly) {
-			var result = [],
-				count = 0;
+		getElementsByProperty: function(property, value) {
+			var result = [];
 
-			for (var id in NODES) {
-				if (NODES[id][property] === value || null === value) {
-					if (countOnly) {
-						count++;
-					} else {
-						result.push(NODES[id]);
-					}
+			for (var id in NODES[this.id]) {
+				if (NODES[this.id][id][property] === value || null === value) {
+					result.push(NODES[this.id][id]);
 				}
 			}
-			return countOnly ? count : result;
+			return result;
 		},
 		insetBefore: function(item, sibling) {
 			return moveItem(this, item, sibling.parentNode, sibling.index);
@@ -75,12 +74,13 @@
 		prependChild: function(item, parent) {
 			return moveItem(this, item, parent || this.model.root, 0);
 		},
-		replaceChild: function(item, newItem) {
+		replaceChild: function(newItem, item) {
 			var index = item.index,
 				parentNode = item.parentNode;
 
 			removeChild(this, item);
-			return moveItem(this, newItem, parentNode, index);
+			moveItem(this, newItem, parentNode, index);
+			return item;
 		},
 		removeChild: function(item) {
 			removeChild(this, item);
@@ -88,20 +88,18 @@
 			return item;
 		},
 		destroy: function() {
-			return destroy(this.options, this.model);
+			return destroy(this, this.model);
 		}
 	};
 
 	/* ------------- module functions  -------------- */
 
-	function destroy(options, items) { // only cleans up NODES
+	function destroy(_this, items) { // only cleans up NODES
 		for (var n = items.length; n--; ) {
 			if (items[n].childNodes) {
-				destroy(options, items[n].childNodes);
+				destroy(_this.options, items[n].childNodes);
 			}
-			delete NODES[items[n][options.idProperty]];
-			// delete items[n].parentNode; // for reuse...
-			// delete items[n].index; // for reuse...
+			delete NODES[_this.id][items[n][_this.options.idProperty]];
 		}
 		return items;
 	};
@@ -134,7 +132,7 @@
 	};
 
 	function removeChild(_this, item, preserve) { // TODO: recursion
-		!preserve && destroy(_this.options, [item]); // from lookup
+		!preserve && destroy(_this, [item]); // from lookup
 		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
 	}
 
@@ -161,10 +159,10 @@
 			isNew = !item.parentNode;
 
 			if (!item[idProperty]) {
-				item[idProperty] = id++;
+				item[idProperty] = idCounter++;
 			}
 
-			NODES[item[idProperty]] = item; // push to flat index model
+			NODES[_this.id][item[idProperty]] = item; // push to flat index model
 			item.parentNode = parent || _this.model.root;
 			// recursion
 			item.childNodes && enrichModel(item.childNodes, _this, item);
@@ -184,33 +182,43 @@
 		var cache = {}; // getter / setter value cache
 
 		for (var item in model) {
-			if (_this.options.enhanceAll || _this.options.enhanceMap[item] ||
-					item === _this.options.idProperty ||
-					item === 'parentNode' || item === index) { // 'childNodes'
-				cache[item] = model[item]; // 'index' will never change
-				defineProperty(item, model, cache, _this, index);
+			if (item === _this.options.idProperty) {
+				reinforceProperty(model, item, model[item]);
+			} else if (_this.options.enhanceAll || _this.options.enhanceMap[item] ||
+					item === 'parentNode' || item === strIndex) { // 'childNodes'
+				cache[item] = model[item];
+				defineProperty(item, model, cache, _this, strIndex);
 			}
 		}
 
 		return model;
 	}
 
-	function defineProperty(property, object, cache, _this, index) {
+	function reinforceProperty(model, item, value) {
+		delete model[item]; // in case it is set already...
+		return Object.defineProperty(model, item, {
+			__proto__: null,
+			value: value
+		});
+	}
+
+	function defineProperty(property, object, cache, _this, strIndex) {
 		return Object.defineProperty(object, property, {
 			get: function() {
-				return property === index ? indexOf(_this, object) : cache[property];
+				return property === strIndex ? indexOf(_this, object) : cache[property];
 			},
-			set: function(value, oldValue) {
-				oldValue = cache[property]; // TODO: deep copy for real oldValue
+			set: function(value) {
+				var  oldValue = cache[property]; // TODO: deep copy for real oldValue
+
 				cache[property] = value;
-				validate(property, object, value, oldValue, cache, _this, index);
+				validate(property, object, value, oldValue, cache, _this, strIndex);
 				// return cache[property]; // might be old value
 			}
 		});
 	}
 
-	function validate(property, object, value, oldValue, cache, _this, index) {
-		if (property === _this.options.idProperty || property === index ||
+	function validate(property, object, value, oldValue, cache, _this, strIndex) {
+		if (property === _this.options.idProperty || property === strIndex ||
 			_this.options.setterCallback.call(_this, property, object, value, oldValue)) {
 				cache[property] = oldValue; // return if not allowed
 				error('ERROR: Cannot set property \'' + property + '\' to \'' +
