@@ -12,9 +12,9 @@
 	}
 
 	// ---------- CREATE MODEL (instance)
-	const demo = window.demo = new VOM(data, {
-		enhanceMap: ['clicks'], // what should we listen to...
-		// Model callbacks only call VIEW functions (passing data)
+	const demo = window.demo = new VOM(data, { // options
+		enhanceMap: ['clicks'], // what should we listen to in setterCallback...
+		// Model callbacks should only call VIEW functions (passing data)
 		// and data storage (sync to server... might also reflect in view).
 		// return true means that new value is not excepted and therefore reset.
 		setterCallback: (property, object, value, oldValue) => {
@@ -25,6 +25,7 @@
 					removeButton(object.element);
 					break;
 				case 'clicks': // custom callback defined by enhanceMap
+					// you might want to check value > item.maxClicks here...
 					if (oldValue >= value) { // value may only increase...
 						return true; // reset to old value
 					} else { // call view function
@@ -74,7 +75,7 @@
 
 
 
-	// ---------- Helperfunction for storage
+	// ---------- Helper-function for storage
 	function storage(scope, component, type, value) {
 		let data = localStorage.getItem(scope + '.' + component),
 			items = JSON.parse(data || '{}');

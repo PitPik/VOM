@@ -19,15 +19,15 @@
 	<title>Demo VOM (Virtual Object Model)</title>
 </head>
 <body>
-	<p>This demo shows (a) button(s) with a text that represents the number of clicks being fired on itself.</p>
-	<p>In case there was no button before this request of the page, it starts with a single button that was clicked 0 times and can be clicked 10 times before it would disappear again.</p>
+	<p>This demo initially shows a button with a text that represents the number of clicks being fired on itself which is 0 in the very beginning.</p>
+	<p>Initial buttons can be clicked 10 times before they would disappear again and can be restored by reloading the page (if there was no other button added like shown in the next step).</p>
 	<p>More buttons can be added by adding items to the model in the browser's console. <pre>demo.appendChild({
-    button: true,
-    clicks: 8,
-    maxClicks: 12
+    clicks: 0,
+    maxClicks: 12 // before it disappears
 });</pre></p>
 	<p>The state of an existing button can be manipulated in the browser's console.<pre>demo.model[0].clicks = 8;</pre> although, if the value is smaller or as big as the current value, an error will be shown in the console of the browser.</p>
 	<p>The states of the buttons are stored in the local storage and are restored on a new page request (refresh page).</p>
+	<p>With this demo, the comments inside demo.js and the documentation it should be easily possible to understand VOM and how it could be used for MVC patterns.</p>
 	<script type="text/javascript" src="VOM.js"></script>
 	<script type="text/javascript" src="demo.js"></script>
 </body>
