@@ -1,4 +1,4 @@
-(function (root, factory) { // 6.56KB, 2.99KB, 1.29KB
+(function (root, factory) {
 	if (typeof exports === 'object') {
 		module.exports = factory(root);
 	} else if (typeof define === 'function' && define.amd) {
@@ -40,7 +40,6 @@
 				map[item] = true; // for faster lookup table than array
 			}
 			reinforceProperty(_this.model, 'root', {childNodes: _this.model});
-			// _this.model.root = {childNodes: _this.model};
 			enrichModel(_this.model, _this);
 		},
 		NODES = [], // node maps for fast access
@@ -131,15 +130,15 @@
 		return item;
 	};
 
-	function removeChild(_this, item, preserve) { // TODO: recursion
-		!preserve && destroy(_this, [item]); // from lookup
+	function removeChild(_this, item, preserve) {
+		!preserve && destroy(_this, [item]);
 		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
 	}
 
 	function parentCheck(_this, item, parent) {
 		var check = parent;
 
-		if (item === parent) { // ???
+		if (item === parent) {
 			error('ERROR: can\'t move element inside itself', _this.options);
 		}
 		while (check = check.parentNode) {
@@ -166,7 +165,7 @@
 			item.parentNode = parent || _this.model.root;
 			// recursion
 			item.childNodes && enrichModel(item.childNodes, _this, item);
-			item.index = 0; // indexOf(_this, item);
+			item.index = 0; // will be reset on get()
 
 			if (isNew) {
 				item = enhanceModel(_this, item);
@@ -208,11 +207,10 @@
 				return property === strIndex ? indexOf(_this, object) : cache[property];
 			},
 			set: function(value) {
-				var  oldValue = cache[property]; // TODO: deep copy for real oldValue
+				var  oldValue = cache[property];
 
 				cache[property] = value;
 				validate(property, object, value, oldValue, cache, _this, strIndex);
-				// return cache[property]; // might be old value
 			}
 		});
 	}
@@ -220,7 +218,7 @@
 	function validate(property, object, value, oldValue, cache, _this, strIndex) {
 		if (property === _this.options.idProperty || property === strIndex ||
 			_this.options.setterCallback.call(_this, property, object, value, oldValue)) {
-				cache[property] = oldValue; // return if not allowed
+				cache[property] = oldValue; // return value if not allowed
 				error('ERROR: Cannot set property \'' + property + '\' to \'' +
 					value + '\'', _this.options);
 		}
