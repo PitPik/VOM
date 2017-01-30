@@ -97,7 +97,7 @@
 
 	function persist(data) {
 		return storage('demo', 'demo_01', 'model',
-			JSON.stringify(data, function JSONStringify(key, value) {
+			JSON.stringify(data, (key, value) => {
 				// remove properties not needed (or not there before enhancement)
 				return /(?:parentNode|element|index|id)/.test(key) ? undefined : value;
 			}));
