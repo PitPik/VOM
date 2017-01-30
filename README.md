@@ -2,8 +2,11 @@
 # VOM (Virtual Object Model)
 
 VOM is a tiny model controller (1.29KB). It can be used to either abstract items on a DOM page such as containers, widgets, form items, element groups, etc. or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
+
 The strong point of VOM is that it automatically registers changes in its model and can react on that. It is aware of depth of the model, just like in a DOM structure (so it has children with an index and parents) and therefore can be used for complex structures such as menu trees, categorical structures or for example CMS items on a page. VOM provides an API similar to the DOM-API (appendChild, replaceChild, insertBefore, ...) so it is quite easy to understand and to learn.
+
 VOM can be used as a starting point for a MVC, MVVM or MV* library. It makes it easy to separate view from model from UI. VOM is also super fast as it is very simple and small.
+
 VOM doesn't provide a rendering engine but makes it easy to delegate to such. See the [demo](http://dematte.at/VOM) to understand how VOM can help you to coordinate a model with a view and a UI and how persisting values can be realized.
 
 
