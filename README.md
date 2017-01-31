@@ -55,7 +55,7 @@ A more complex model could look like this:
 ```javascript
 [{
     text: 'Root item 0',
-    someAttribute: 'foo'
+    someAttribute: 'foo',
     isOpen: true,
     childNodes: [{
         text: 'Item 0-0',
@@ -92,6 +92,22 @@ A more complex model could look like this:
         text: 'Item 1-0',
     }, ...]
 }, ...];
+```
+This will end up in a model like:
+```javascript
+[{
+    text: 'Root item 0',
+    id: 0,
+    index: (...),
+    parentNode: (...),
+    someAttribute: 'foo',
+    isOpen: true,
+    childNodes: [{
+        text: 'Item 0-0',
+        id: 1,
+        index: (...),
+        parentNode: (...)
+    }, {...
 ```
 
 ##Options
