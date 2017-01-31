@@ -1,7 +1,7 @@
 
 # VOM (Virtual Object Model)
 
-VOM is a tiny model controller (1.6KB). It can be used to either abstract items on a DOM page such as containers, widgets, form items, element groups, etc. or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
+VOM is a tiny model controller (1.6KB). It can be used to either abstract element structure on a DOM page such as containers, widgets, form items, element groups, etc. to build complex apps or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
 
 The strong point of VOM is that it automatically registers changes in its model and can react on that. It is aware of depth of the model, just like in a DOM structure (so it has children with an index and parents) and therefore can be used for complex structures such as menu trees, categorical structures or for example CMS items on a page. VOM provides an API similar to the DOM-API (appendChild, replaceChild, insertBefore, ...) so it is quite easy to understand and to learn.
 
@@ -63,7 +63,7 @@ parentCheck: false,
 idProperty: 'id',
 // the key of how the id should be stored in the model ('uuid', ...)
 
-setterCallback: function(property, object, value, oldValue) {},
+setterCallback: function(property, item, value, oldValue) {},
 // This is actually the key callback that makes VOM so valuable and convenient to be used.
 // All properties in the model that have been enhanced by being defined in options.enhanceMap,
 // through options.enhanceAll or defined by its reserved key word 'parentNode', if changed, will
@@ -71,8 +71,8 @@ setterCallback: function(property, object, value, oldValue) {},
 // property could be parentNode (on all manipulation methods like appendChild, ...) or removeChild
 // or the key from options.enhanceMap. In case options.enhanceAll is set to true, all properties in
 // the model being changed in the model would trigger this function and deliver its name in property.
-// object is the object being modified, so value could also be taken from object[property].
-// oldValue is the value of object[property] before it was manipulated.
+// item is the model part being modified, so value could also be taken from item[property].
+// oldValue is the value of item[property] before it was manipulated.
 
 enhanceMap: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
@@ -81,8 +81,8 @@ enhanceMap: [],
 enhanceAll: false,
 // as described above (in enhanceMap), but this time for all properties in the model
 
-enrichModelCallback: function(object) {},
-// right after an element was enhanced this callback is called and provides its data (object)
+enrichModelCallback: function(item) {},
+// right after an element was enhanced this callback is called and provides its data (item / model)
 // for inspection or manipulation, etc. It might be a good idea to set a reference to a real
 // DOM element for future convenience like with getElementsByProperty('element', element); if
 // any rendering is involved...
