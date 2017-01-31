@@ -21,7 +21,11 @@
     "menu",
     "categories",
     "object",
-    "model"
+    "model",
+    "controller",
+    "MVC",
+    "MVVM",
+    "MV*"
   ],
   "author": "Peter Dematté",
   "license": "ISC"
