@@ -51,6 +51,48 @@ A more complex model could look like this:
     }]
 }, ...]
 ```
+...and this is actually the main reason for this component. You can control complex and deep JSON structures and use them just like a DOM tree but then in a more abstract and simpler way. The following model might be for a menu tree:
+```javascript
+[{
+    text: 'Root item 0',
+    someAttribute: 'foo'
+    isOpen: true,
+    childNodes: [{
+        text: 'Item 0-0',
+    }, {
+        text: 'Item 0-1',
+        isOpen: false,
+        childNodes: [{
+            text: 'Item 0-1-0',
+        }, {
+            text: 'Item 0-1-1',
+            isOpen: false,
+            childNodes: [{
+                text: 'Item 0-1-1-0',
+            }, {
+                text: 'Item 0-1-1-1',
+            }]
+        }, {
+            text: 'Item 0-1-2',
+        }]
+    }, {
+        text: 'Item 0-2',
+        isOpen: false,
+        childNodes: [{
+            text: 'Item 0-2-0',
+        }]
+    }, {
+        text: 'Item 0-3',
+    }]
+}, {
+    text: 'Root item 1',
+    isOpen: false,
+    childNodes: [{
+        id: '1-0',
+        text: 'Item 1-0',
+    }, ...]
+}, ...];
+```
 
 ##Options
 On initialisation you can add some options. All predefinitions are shown as followed.
