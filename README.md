@@ -173,11 +173,13 @@ insetAfter(item, sibling); // item, sibling: model element (Object)
 
 appendChild(item, parent); // item, parent: model element (Object)
 // inserts an existing or new item to the model at the end of parent's children Array.
+// childNodes property will be created automatically to parent if it doesn't exist.
 // New items will be enhanced automatically
 // returns the (new) item
 
 prependChild(item, parent); // item, parent: model element (Object)
 // inserts an existing or new item to the model at the beginning of parent's children Array.
+// childNodes property will be created automatically to parent if it doesn't exist.
 // New items will be enhanced automatically
 // returns the (new) item
 
