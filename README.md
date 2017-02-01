@@ -190,6 +190,7 @@ replaceChild(newItem, item); // newItem, item: model element (Object)
 
 removeChild(item); // item: model element (Object)
 // Removes an existing item from the model.
+// Does NOT automatically remove the childNodes preoperty from its parent element
 // returns the item
 
 destroy()
