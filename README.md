@@ -161,26 +161,28 @@ getElementsByProperty(property, value); // property: String, value: Any
 // returns an Array of elements that match with the value of its property.
 // value could be a string but also a DOM Element or anything else.
 
-insetBefore(item, sibling); // item, sibling: model element (Object)
+insertBefore(item, sibling); // item, sibling: model element (Object)
 // inserts an existing or new item to the model just before the defined sibling.
 // New items will be enhanced automatically
 // returns the (new) item
 
-insetAfter(item, sibling); // item, sibling: model element (Object)
+insertAfter(item, sibling); // item, sibling: model element (Object)
 // inserts an existing or new item to the model just after the defined sibling.
 // New items will be enhanced automatically
 // returns the (new) item
 
-appendChild(item, parent); // item, parent: model element (Object)
+appendChild(item, [parent]); // item, parent: model element (Object)
 // inserts an existing or new item to the model at the end of parent's children Array.
 // childNodes property will be created automatically to parent if it doesn't exist.
 // New items will be enhanced automatically
+// If there is no parent specified, element will be appended to root
 // returns the (new) item
 
-prependChild(item, parent); // item, parent: model element (Object)
+prependChild(item, [parent]); // item, parent: model element (Object)
 // inserts an existing or new item to the model at the beginning of parent's children Array.
 // childNodes property will be created automatically to parent if it doesn't exist.
 // New items will be enhanced automatically
+// If there is no parent specified, element will be prepended to root
 // returns the (new) item
 
 replaceChild(newItem, item); // newItem, item: model element (Object)
