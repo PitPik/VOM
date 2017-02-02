@@ -199,6 +199,10 @@ destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
 ```
 
+'Enhancement' means that all properties that are defined in options.enhanceMap or all properies if options.enhanceAll is set, will be handled in setterCallback. It also means that the 'id' will be given automatically if not defined in the model and also be set to readonly, 'parentElement' will be set automatically and be handled in setterCallback and finally 'index' will be added to the model as a readonly property to determine the position of the element compared to its siblings.
+
+'childNodes' doesn't have to be set initially if there are no child nodes, but it will be set automatically if methods like appendChild() or prependChild() were called and there were no previous child nodes present in its parent.
+
 All methods are scoped with the instance: this === instance_of_VOM
 
 ##Little example
