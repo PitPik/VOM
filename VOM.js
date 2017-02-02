@@ -60,10 +60,10 @@
 			}
 			return result;
 		},
-		insetBefore: function(item, sibling) {
+		insertBefore: function(item, sibling) {
 			return moveItem(this, item, sibling.parentNode, sibling.index);
 		},
-		insetAfter: function(item, sibling) {
+		insertAfter: function(item, sibling) {
 			return moveItem(this, item, sibling.parentNode, sibling.index + 1);
 		},
 		appendChild: function(item, parent) {
