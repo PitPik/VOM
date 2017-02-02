@@ -52,13 +52,13 @@
 		},
 		getElementsByProperty: function(property, value) {
 			var result = [],
-				noValue = undefined === value,
-				noProperty = undefined ===property;
+				hasValue = undefined !== value,
+				hasProperty = undefined !== property;
 
 			for (var id in NODES[this.id]) {
-				if ((!noValue && NODES[this.id][id][property] === value) ||
-					(noValue && undefined !== NODES[this.id][id][property]) ||
-					(noValue && noProperty)) {
+				if ((hasValue && NODES[this.id][id][property] === value) ||
+					(!hasValue && undefined !== NODES[this.id][id][property]) ||
+					(!hasValue && !hasProperty)) {
 						result.push(NODES[this.id][id]);
 				}
 			}

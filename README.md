@@ -130,7 +130,9 @@ setterCallback: function(property, item, value, oldValue) {},
 // or the key from options.enhanceMap. In case options.enhanceAll is set to true, all properties in
 // the model being changed in the model would trigger this function and deliver its name in property.
 // item is the model part being modified, so value could also be taken from item[property].
-// oldValue is the value of item[property] before it was manipulated.
+// oldValue is the value of item[property] before it was manipulated. So, in case there was an invalide
+// value set, you can react on it with either setting it back to old value or returning true, which also
+// sets the value back and console.logs a message.
 
 enhanceMap: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
