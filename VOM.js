@@ -51,11 +51,15 @@
 			return NODES[this.id][id];
 		},
 		getElementsByProperty: function(property, value) {
-			var result = [];
+			var result = [],
+				noValue = undefined === value,
+				noProperty = undefined ===property;
 
 			for (var id in NODES[this.id]) {
-				if (NODES[this.id][id][property] === value || null === value) {
-					result.push(NODES[this.id][id]);
+				if ((!noValue && NODES[this.id][id][property] === value) ||
+					(noValue && undefined !== NODES[this.id][id][property]) ||
+					(noValue && noProperty)) {
+						result.push(NODES[this.id][id]);
 				}
 			}
 			return result;

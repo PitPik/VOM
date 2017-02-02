@@ -157,9 +157,11 @@ throwErrors: false
 getElementById(id); // id: String
 // returns an element defined by its id if found in model
 
-getElementsByProperty(property, value); // property: String, value: Any
+getElementsByProperty([property], [value]); // property: String, value: Any
 // returns an Array of elements that match with the value of its property.
 // value could be a string but also a DOM Element or anything else.
+// if value and property is undefined, the method will return all items
+// if value === undefined, the method returns all items that have a property defined by property
 
 insertBefore(item, sibling); // item, sibling: model element (Object)
 // inserts an existing or new item to the model just before the defined sibling.
