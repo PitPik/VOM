@@ -199,6 +199,11 @@ removeChild(item); // item: model element (Object)
 // Does NOT automatically remove the childNodes preoperty from its parent element
 // returns the item
 
+reinforceProperty(model, item, value, [enumarable]) //
+// sets a property as enumerable: false or as set, configurable: false, writable: false.
+// convenient for storing items that don't belong to the model. JSON.strigify 
+// can then better deal with the model...
+
 destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
 ```
