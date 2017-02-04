@@ -178,26 +178,20 @@
 		}
 	}, true);
 
-	appElm.addEventListener('submit', function(e) {
-		var target = e.target[0],
-			text = target.value.replace(/(?:^\s+|\s+$)/, ''), // trim
-			item = getListItem(target);
-
-		if (text && item.input === target) {
-			e.preventDefault();
-			item.text = text;
-		}
-	});
-
 	appElm.addEventListener('keypress', function(e) {
-		var text = e.target.value.replace(/(?:^\s+|\s+$)/, '');
+		var text = e.target.value.replace(/(?:^\s+|\s+$)/, ''),
+			editItem;
 
-		if(text && e.target === input && e.which === 13) {
-			list.appendChild({
-				text: text,
-				done: false
-			});
-			e.target.value = '';
+		if(text && e.which === 13) {
+			if(e.target === input) {
+				list.appendChild({
+					text: text,
+					done: false
+				});
+				e.target.value = '';
+			} else if (editItem = getListItem(e.target)) {
+				editItem.text = text;
+			}
 		}
 	});
 
