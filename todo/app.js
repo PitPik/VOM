@@ -288,17 +288,10 @@
 	}
 
 	function setTodoList(data, deleteItem) {
-		return storage('todo-vom', 'list', 'model', list.model);
-
-		var allData = storage('todo', 'list', 'model') || [];
-		// mimiking delta storage
-		if (deleteItem) {
-			allData.splice(list.model._romovedIndex, 1);
-		} else {
-			allData[data.index] = data;
-		}
-
-		storage('todo', 'list', 'model', allData);
+		clearTimeout(setTodoList.timeout); // lazy data save as we save the whole..
+		setTodoList.timeout = setTimeout(function() {
+			storage('todo-vom', 'list', 'model', list.model);
+		}, 0);
 	}
 
 	function storage(scope, component, type, value) {
