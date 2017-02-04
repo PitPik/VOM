@@ -192,7 +192,7 @@
 	appElm.addEventListener('keypress', function(e) {
 		var text = e.target.value.replace(/(?:^\s+|\s+$)/, '');
 
-		if(text && e.target === input && e.keyCode === 13) {
+		if(text && e.target === input && e.which === 13) {
 			list.appendChild({
 				text: text,
 				done: false
@@ -209,7 +209,7 @@
 		return document.querySelector('#item-template').innerHTML;
 	}
 
-	function addViewItem(item) { // TODO: use documentFragment and timeout
+	function addViewItem(item) { // TODO: use documentFragment and "timeout"!!
 		var fragment = addViewItem.fragment = // cache for next time
 				addViewItem.fragment || document.createElement('div'),
 			template = addViewItem.template = // cache for next time;
