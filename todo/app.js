@@ -26,6 +26,7 @@
 		toggleAllElm = appElm.querySelector('.toggle-all'),
 		clearElm = appElm.querySelector('button.clear-completed'),
 		footerElm = appElm.querySelector('.footer'),
+		input = appElm.querySelector('.new-todo'),
 
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
@@ -182,21 +183,23 @@
 			text = target.value.replace(/(?:^\s+|\s+$)/, ''), // trim
 			item = getListItem(target);
 
-		if (text) { // add new model item
+		if (text && item.input === target) {
 			e.preventDefault();
-
-			if (target.classList.contains('new-todo')) {
-				list.appendChild({
-					text: text,
-					done: false
-				});
-				target.value = '';
-			} else if (item.input === target) { // edit item
-				item.text = text;
-			}
+			item.text = text;
 		}
 	});
 
+	appElm.addEventListener('keypress', function(e) {
+		var text = e.target.value.replace(/(?:^\s+|\s+$)/, '');
+
+		if(text && e.target === input && e.keyCode === 13) {
+			list.appendChild({
+				text: text,
+				done: false
+			});
+			e.target.value = '';
+		}
+	});
 
 
 
