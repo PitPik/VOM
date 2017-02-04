@@ -8,8 +8,9 @@
 			return  ui.model[0][name] += value;
 		},
 		getListItem = function(elm) {
-			return list.getElementsByProperty('element',
-				closest(elm, '[id]'))[0];
+			var item = closest(elm, '[id]');
+
+			return item ? list.getElementById(item.id) : null;
 		},
 		closest = function(element, selector, root) {
 			return element && element.closest(selector);
@@ -212,7 +213,7 @@
 				addViewItem.template || getTemplate();
 
 		fragment.innerHTML = template
-			.replace('{{id}}', '_item' + item.id)
+			.replace('{{id}}', item.id)
 			.replace(/{{text}}/g, item.text)
 			.replace(/{{completed}}/, item.done ? ' completed' : '')
 			.replace('{{toggled}}', item.done ? ' checked=""' : '');
