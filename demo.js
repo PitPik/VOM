@@ -35,9 +35,10 @@
 			}
 			persist(demo.model, property, object, value, oldValue); // save state of model
 		},
-		enrichModelCallback: object => {
+		enrichModelCallback: function(object) {
 			// store newly created element as reference in model for easy access later on
-			object.element = createButton(document.body, object.clicks);
+			this.reinforceProperty(object, 'element',
+				createButton(document.body, object.clicks));
 		}
 	});
 
@@ -96,11 +97,7 @@
 	}
 
 	function persist(data) {
-		return storage('demo', 'demo_01', 'model',
-			JSON.stringify(data, (key, value) => {
-				// remove properties not needed (or not there before enhancement)
-				return /(?:parentNode|element|index|id)/.test(key) ? undefined : value;
-			}));
+		return storage('demo', 'demo_01', 'model', JSON.stringify(data));
 	}
 
 })(this);

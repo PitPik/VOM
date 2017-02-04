@@ -90,6 +90,7 @@
 			this.options.setterCallback.call(this, 'removeChild', item);
 			return item;
 		},
+		reinforceProperty: reinforceProperty,
 		destroy: function() {
 			return destroy(this, this.model);
 		}
@@ -155,6 +156,7 @@
 	function enrichModel(model, _this, parent) {
 		var options = _this.options,
 			isNew = false,
+			hasOwnId = true,
 			idProperty = _this.options.idProperty;
 
 		for (var item = {}, n = 0, l = model.length; n < l; n++) {
@@ -163,6 +165,7 @@
 
 			if (!item[idProperty]) {
 				item[idProperty] = idCounter++;
+				hasOwnId = false;
 			}
 
 			NODES[_this.id][item[idProperty]] = item; // push to flat index model
@@ -172,7 +175,7 @@
 			item.index = 0; // will be reset on get()
 
 			if (isNew) {
-				item = enhanceModel(_this, item);
+				item = enhanceModel(_this, item, hasOwnId);
 			}
 
 			_this.options.enrichModelCallback.call(_this, item);
@@ -181,31 +184,37 @@
 		return model;
 	}
 
-	function enhanceModel(_this, model) {
-		var cache = {}; // getter / setter value cache
+	function enhanceModel(_this, model, ownProperty) {
+		var cache = {}, // getter / setter value cache
+			internalProperty = false;
 
 		for (var item in model) {
+			internalProperty = item === 'parentNode' || item === strIndex;
+
 			if (item === _this.options.idProperty) {
-				reinforceProperty(model, item, model[item]);
+				reinforceProperty(model, item, model[item], ownProperty);
 			} else if (_this.options.enhanceAll || _this.options.enhanceMap[item] ||
-					item === 'parentNode' || item === strIndex) { // 'childNodes'
+					internalProperty) { // 'childNodes'
 				cache[item] = model[item];
-				defineProperty(item, model, cache, _this, strIndex);
+
+				defineProperty(item, model, cache, _this, strIndex, !internalProperty);
 			}
 		}
 
 		return model;
 	}
 
-	function reinforceProperty(model, item, value) {
+	function reinforceProperty(model, item, value, enumarable) {
 		delete model[item]; // in case it is set already...
 		return Object.defineProperty(model, item, {
-			__proto__: null,
+			enumerable: !!enumarable,
+			configurable: false,
+			writable: false,
 			value: value
 		});
 	}
 
-	function defineProperty(property, object, cache, _this, strIndex) {
+	function defineProperty(property, object, cache, _this, strIndex, enumerable) {
 		return Object.defineProperty(object, property, {
 			get: function() {
 				return property === strIndex ? indexOf(_this, object) : cache[property];
@@ -215,7 +224,8 @@
 
 				cache[property] = value;
 				validate(property, object, value, oldValue, cache, _this, strIndex);
-			}
+			},
+			enumerable: enumerable
 		});
 	}
 
