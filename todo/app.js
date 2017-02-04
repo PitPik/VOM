@@ -3,7 +3,22 @@
 
 	// TODO: storage, selectAll, app storage, debounce(toggleAll, render..); toggleAll
 
-	var // --- app view elements
+	var // --- some helpers
+		setDeltaUI = function(name, value) {
+			return  ui.model[0][name] += value;
+		},
+		getListItem = function(elm) {
+			return list.getElementsByProperty('element',
+				closest(elm, '[id]'))[0];
+		},
+		closest = function(element, selector, root) {
+			return element && element.closest(selector);
+		},
+		getFilter = function(text) {
+			return (text.split('#/')[1] || '').split('/')[0] || 'all';
+		},
+		
+		// --- app view elements
 		appElm = document.querySelector('section.todoapp'),
 		todoCountElm = appElm.querySelector('.todo-count'),
 		todoListElm = appElm.querySelector('ul.todo-list'),
@@ -37,7 +52,7 @@
 			countAll: countAllLength,
 			todo: todoLength,
 			toggleAll: !todoLength && countAllLength,
-			filter: location.href.split('#/')[1].split('/')[0] || 'all',
+			filter: getFilter(location.href),
 			// cache elements
 			toggleAllElm: toggleAllElm,
 			clearElm: clearElm,
@@ -53,24 +68,12 @@
 				uiCallbacks[property](property, object, value, oldValue);
 			}
 		}),
-		uiCallbacks = {}, // defined later on
-
-		// --- some helpers
-		setDeltaUI = function(name, value) {
-			return  ui.model[0][name] += value;
-		},
-		getListItem = function(elm) {
-			return list.getElementsByProperty('element',
-				closest(elm, '[id]'))[0];
-		},
-		closest = function(element, selector, root) {
-			return element && element.closest(selector);
-		};
+		uiCallbacks = {}; // defined later on
 		// ---
 
 
 	// --- this is, so to say, the controller part
-	// --- knows about model(s) and view (referenced in model itself)
+	// --- knows about model(s) and view
 	listCallbacks = {
 		text: function (property, object, value, oldValue) {
 			editViewItem(object.input, object.label, value);
@@ -128,7 +131,7 @@
 			uiItem = ui.model[0];
 
 		if (target.href) { // filters
-			show = target.href.split('#/')[1].split('/')[0] || 'all';
+			show = getFilter(target.href);
 			if (ui.model[0].filter !== show) {
 				uiItem.filter = show;
 			}
