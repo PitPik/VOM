@@ -209,8 +209,10 @@
 		return document.querySelector('#item-template').innerHTML;
 	}
 
-	function addViewItem(item) { // TODO: use documentFragment and "timeout"!!
-		var fragment = addViewItem.fragment = // cache for next time
+	function addViewItem(item) {
+		var docFragment = addViewItem.docFragment = // cache for next time
+				addViewItem.docFragment || document.createDocumentFragment(),
+			fragment = addViewItem.fragment = // cache for next time
 				addViewItem.fragment || document.createElement('div'),
 			template = addViewItem.template = // cache for next time;
 				addViewItem.template || getTemplate();
@@ -220,7 +222,13 @@
 			.replace(/{{text}}/g, item.text)
 			.replace(/{{completed}}/, item.done ? ' completed' : '')
 			.replace('{{toggled}}', item.done ? ' checked=""' : '');
-		return todoListElm.appendChild(fragment.children[0]); // TODO: todoListElm
+		
+		clearTimeout(addViewItem.timeout); // lazy rendering
+		addViewItem.timeout = setTimeout(function() {
+			todoListElm.appendChild(docFragment); // TODO: todoListElm
+		}, 0);
+
+		return docFragment.appendChild(fragment.children[0]);
 	}
 
 	function removeViewItem(elm) {
@@ -281,10 +289,12 @@
 
 	// --- local storage helper functions
 	function getTodoList() {
-		return storage('todo', 'list', 'model') || []; // TODO: render on init
+		return storage('todo-vom', 'list', 'model') || []; // TODO: render on init
 	}
 
 	function setTodoList(data, deleteItem) {
+		return storage('todo-vom', 'list', 'model', list.model);
+
 		var allData = storage('todo', 'list', 'model') || [];
 		// mimiking delta storage
 		if (deleteItem) {
