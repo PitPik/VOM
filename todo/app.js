@@ -293,7 +293,7 @@
 	}
 
 	function setTodoList(data, deleteItem) {
-		lazy(function() {
+		lazy(function() { // lazy data save as we save the whole..
 			storage('todo-vom', 'list', 'model', list.model);
 		}, 'setTodoList');
 	}
@@ -307,7 +307,7 @@
 	}
 
 	function lazy(fn, name) {
-		clearTimeout(lazy[name]); // lazy data save as we save the whole..
+		clearTimeout(lazy[name]);
 		lazy[name] = setTimeout(fn, 0);
 	}
 

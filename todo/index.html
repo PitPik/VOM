@@ -60,14 +60,14 @@
 
 			return; // skip testing...
 
-			var numberOfItemsToAdd = 50,
+			var numberOfItemsToAdd = 150,
 				contentDocument = document.body.querySelector('.todoapp'),
 				newTodo = document.body.querySelector('.new-todo');
 
 			setTimeout(function() {
 				var keydownEvent = document.createEvent('Event');
 				keydownEvent.initEvent('keypress', true, true);
-				keydownEvent.keyCode = 13; // VK_ENTER
+				keydownEvent.which = 13; // VK_ENTER
 				var inputEvent = document.createEvent('Event');
 				inputEvent.initEvent('input', true, true);
 
