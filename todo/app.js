@@ -26,6 +26,7 @@
 		filterElms = appElm.querySelectorAll('.filters a'),
 		toggleAllElm = appElm.querySelector('.toggle-all'),
 		clearElm = appElm.querySelector('button.clear-completed'),
+		mainElm = appElm.querySelector('.main'),
 		footerElm = appElm.querySelector('.footer'),
 		input = appElm.querySelector('.new-todo'),
 
@@ -218,10 +219,9 @@
 			.replace(/{{completed}}/, item.done ? ' completed' : '')
 			.replace('{{toggled}}', item.done ? ' checked=""' : '');
 		
-		clearTimeout(addViewItem.timeout); // lazy rendering
-		addViewItem.timeout = setTimeout(function() {
+		lazy(function() {
 			todoListElm.appendChild(docFragment); // TODO: todoListElm
-		}, 0);
+		}, 'addViewItem');
 
 		return docFragment.appendChild(fragment.children[0]);
 	}
@@ -230,7 +230,7 @@
 		elm.parentNode.removeChild(elm);
 	}
 
-	function editViewItem(input, label, text) {
+	function editViewItem(input, label, text) { // TODO: follow guids: .editing; ESC; empty -> destroy
 		var style = '';
 
 		if (label) {
@@ -254,26 +254,31 @@
 	// --- app view: all functions referenced inside list model
 	// TODO: clean up element finding...
 	function todoCallback(elm, count) {
-		elm.innerHTML = '<strong>' + count + '</strong> item' +
-			(count === 1 ? '' : 's') + ' left';
+		lazy(function() {
+			elm.innerHTML = '<strong>' + count + '</strong> item' +
+				(count === 1 ? '' : 's') + ' left';
+		}, 'todoCallback');
 	}
 
 	function filterCallback(link, elms, value) {
-		for (var n = elms.length; n--; ) {
+		for (var n = elms.length; n--; ) { // TODO: cache
 			elms[n].classList.remove('selected'); // TODO: class name optional
 		}
 		link.classList.add('selected');
 		filterView(value);
 	}
 
-	function filterView(value) { // TODO: appElm
+	function filterView(value) { // TODO: appElm; make changes on model level (is a rule)
 		appElm.classList.remove('all', 'completed', 'active');
 		appElm.classList.add(value);
 	}
 
-	function countAllCallback(toggle, countAll) { // TODO: clearElm, footerElm
-		clearElm.style.display = toggle ? '' : 'none';
-		footerElm.style.display = countAll ? 'block' : '';
+	function countAllCallback(toggle, countAll) { // TODO: clearElm, footerElm; optimize
+		lazy(function() {
+			clearElm.style.display = toggle ? '' : 'none';
+			footerElm.style.display = countAll ? '' : 'none';
+			mainElm.style.display = countAll ? '' : 'none';
+		}, 'countAllCallback');
 	}
 
 	function toggleAllCallback(elm, value) {
@@ -284,33 +289,26 @@
 
 	// --- local storage helper functions
 	function getTodoList() {
-		return storage('todo-vom', 'list', 'model') || []; // TODO: render on init
+		return storage('todo-vom', 'list', 'model') || [];
 	}
 
 	function setTodoList(data, deleteItem) {
-		clearTimeout(setTodoList.timeout); // lazy data save as we save the whole..
-		setTodoList.timeout = setTimeout(function() {
+		lazy(function() {
 			storage('todo-vom', 'list', 'model', list.model);
-		}, 0);
+		}, 'setTodoList');
 	}
 
 	function storage(scope, component, type, value) {
-		var data = localStorage.getItem(scope + '.' + component),
-			items = JSON.parse(data || '{}');
-
-		if (undefined !== value) {
-			if (null !== value) { // set
-				items[type] = value;
-			} else { // delete
-				delete items[type];
-			}
-
-			localStorage.setItem(scope + '.' + component, JSON.stringify(items));
-		} else if (type) { // return value
-			return items[type];
-		} else { // return all
-			return items;
+		if (undefined === value) {
+			return JSON.parse(localStorage.getItem(scope + '.' + component) || '[]');
+		} else {
+			localStorage.setItem(scope + '.' + component, JSON.stringify(value));
 		}
+	}
+
+	function lazy(fn, name) {
+		clearTimeout(lazy[name]); // lazy data save as we save the whole..
+		lazy[name] = setTimeout(fn, 0);
 	}
 
 })(window);
