@@ -41,7 +41,7 @@
 			enrichModelCallback(object) { // as soon as new model comes in
 				var element = addViewItem(object, todoListElm);
 				// cacheing elements helps finding things faster later on
-				this.reinforceProperty(object, 'view', {
+				this.reinforceProperty(object, 'viewElms', {
 					element: element,
 					label: element.querySelector('label'),
 					input: element.querySelector('.edit'),
@@ -60,7 +60,7 @@
 			toggleAll: !todoLength && countAllLength,
 			filter: getFilter(location.href),
 			// cache elements
-			view: {
+			viewElms: {
 				toggleAllElm: toggleAllElm,
 				clearElm: clearElm,
 				todoCountElm: todoCountElm,
@@ -87,13 +87,13 @@
 	// --- knows about model(s) and view
 	listCallbacks = {
 		text: function (property, object, value, oldValue) {
-			editViewItem(object.view.input, object.view.label, value);
+			editViewItem(object.viewElms.input, object.viewElms.label, value);
 		},
 		done: function (property, object, value, oldValue) {
 			setDeltaUI('todo', (value ? -1 : 1));
 			setDeltaUI('countAll', 0); // triggers rendering...
 			ui.model[0].toggleAll = !ui.model[0].todo;
-			markViewItem(object.view.element, object.view.toggle, value);
+			markViewItem(object.viewElms.element, object.viewElms.toggle, value);
 		},
 		parentNode: function (property, object, value, oldValue) { // add new
 			setDeltaUI('todo', 1);
@@ -101,7 +101,7 @@
 			ui.model[0].toggleAll = false;
 		},
 		removeChild: function (property, object, value, oldValue) {
-			removeViewItem(object.view.element);
+			removeViewItem(object.viewElms.element);
 			if (!object.done) {
 				setDeltaUI('todo', -1);
 			}
@@ -111,16 +111,16 @@
 	},
 	uiCallbacks = {
 		filter: function (property, object, value, oldValue) {
-			filterCallback(object.view, object.view[property + value + 'Elm'], value);
+			filterCallback(object.viewElms, object.viewElms[property + value + 'Elm'], value);
 		},
 		countAll: function (property, object, value, oldValue) {
-			countAllCallback(object.view, value !== ui.model[0].todo, value);
+			countAllCallback(object.viewElms, value !== ui.model[0].todo, value);
 		},
 		todo: function (property, object, value, oldValue) {
-			todoCallback(object.view.todoCountElm, value);
+			todoCallback(object.viewElms.todoCountElm, value);
 		},
 		toggleAll: function (property, object, value, oldValue) {
-			toggleAllCallback(object.view.toggleAllElm, value);
+			toggleAllCallback(object.viewElms.toggleAllElm, value);
 		}
 	};
 
@@ -143,9 +143,8 @@
 			uiItem.filter = getFilter(target.href);
 		} else if (target.classList.contains('destroy')) { // delete item
 			list.removeChild(getListItem(target));
-		} else if (target === uiItem.view.clearElm) { // delete all done
+		} else if (target === uiItem.viewElms.clearElm) { // delete all done
 			items = list.getElementsByProperty('done', true);
-
 			for (var n = items.length; n--; ) {
 				list.removeChild(items[n]);
 			}
@@ -154,7 +153,6 @@
 		} else if (target.classList.contains('toggle-all')) { // toggle all
 			items = list.getElementsByProperty('done');
 			checked = target.checked;
-
 			for (var n = items.length; n--; ) {
 				if (items[n].done !== checked) {
 					items[n].done = checked;
@@ -166,15 +164,15 @@
 	appElm.addEventListener('dblclick', function(e) {
 		var item = getListItem(e.target);
 
-		if (item && e.target === item.view.label) { // prepare edit mode
-			editViewItem(item.view.input);
+		if (item && e.target === item.viewElms.label) { // prepare edit mode
+			editViewItem(item.viewElms.input);
 		}
 	});
 
 	appElm.addEventListener('blur', function(e) { // remove edit mode
 		var item = getListItem(e.target);
 
-		if (item && item.view.input === e.target) {
+		if (item && item.viewElms.input === e.target) {
 			item.text = e.target.value;
 		}
 	}, true);
