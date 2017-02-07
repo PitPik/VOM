@@ -30,7 +30,6 @@
 			return (text.split('#/')[1] || '').split('/')[0] || 'all';
 		},
 
-
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
 			enhanceMap: ['text', 'done'],
@@ -82,7 +81,6 @@
 		uiCallbacks = {}; // defined later on
 		// ---
 
-
 	// --- this is, so to say, the controller part
 	// --- knows about model(s) and view
 	listCallbacks = {
@@ -131,7 +129,6 @@
 	}
 
 
-
 	// --- UI: doesn't know about view, only about models
 	appElm.addEventListener('click', function(e) {
 		var target = e.target,
@@ -152,7 +149,7 @@
 			getListItem(target).done = target.checked;
 		} else if (target.classList.contains('toggle-all')) { // toggle all
 			items = list.getElementsByProperty('done');
-			checked = target.checked;
+			checked = target.checked; // debounce
 			for (var n = items.length; n--; ) {
 				if (items[n].done !== checked) {
 					items[n].done = checked;
@@ -193,7 +190,6 @@
 			}
 		}
 	});
-
 
 
 	// --- list view: all functions referenced inside list model
@@ -244,7 +240,6 @@
 	}
 
 
-
 	// --- app view: all functions referenced inside list model
 	// no external element references (all variables inside scope)
 	function todoCallback(elm, count) {
@@ -261,12 +256,8 @@
 			elms[n].classList.remove('selected'); // TODO: class name optional
 		}
 		link.classList.add('selected');
-		filterView(viewElms.appElm, value);
-	}
-
-	function filterView(appElm, value) { // TODO: make changes on model level (is a rule)
-		appElm.classList.remove('all', 'completed', 'active');
-		appElm.classList.add(value);
+		viewElms.appElm.classList.remove('all', 'completed', 'active');
+		viewElms.appElm.classList.add(value);
 	}
 
 	function countAllCallback(viewElms, toggle, countAll) {
@@ -280,7 +271,6 @@
 	function toggleAllCallback(elm, value) {
 		elm.checked = value;
 	}
-
 
 
 	// --- local storage helper functions
