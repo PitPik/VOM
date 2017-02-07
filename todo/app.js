@@ -9,10 +9,11 @@
 		todoListElm = appElm.querySelector('ul.todo-list'),
 		filterElms = appElm.querySelectorAll('.filters a'),
 		toggleAllElm = appElm.querySelector('.toggle-all'),
-		clearElm = appElm.querySelector('button.clear-completed'),
+		clearElm = appElm.querySelector('.clear-completed'),
 		mainElm = appElm.querySelector('.main'),
 		footerElm = appElm.querySelector('.footer'),
 		input = appElm.querySelector('.new-todo'),
+		template = document.querySelector('#item-template'),
 		
 		// --- some helpers
 		setDeltaUI = function(name, value) {
@@ -38,7 +39,7 @@
 				setTodoList(object, property === 'removeChild');
 			},
 			enrichModelCallback(object) { // as soon as new model comes in
-				var element = addViewItem(object, todoListElm);
+				var element = addViewItem(object, todoListElm, template);
 				// cacheing elements helps finding things faster later on
 				this.reinforceProperty(object, 'viewElms', {
 					element: element,
@@ -194,14 +195,10 @@
 
 	// --- list view: all functions referenced inside list model
 	// no external element references (all variables inside scope)
-	function getTemplate() {
-		return document.querySelector('#item-template').innerHTML;
-	}
-
-	function addViewItem(item, todoListElm) {
+	function addViewItem(item, todoListElm, template) {
 		addViewItem.docFragment = addViewItem.docFragment || document.createDocumentFragment(),
 		addViewItem.fragment = addViewItem.fragment || document.createElement('div'),
-		addViewItem.template =  addViewItem.template || getTemplate();
+		addViewItem.template =  addViewItem.template || template.innerHTML;
 
 		addViewItem.fragment.innerHTML = addViewItem.template
 			.replace('{{id}}', item.id)
