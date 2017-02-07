@@ -1,9 +1,20 @@
 (function(window, undefined) {
 	'use strict';
 
-	// TODO: storage, selectAll, app storage, debounce(toggleAll, render..); toggleAll
+	// TODO: debounce(toggleAll, render..);
 
-	var // --- some helpers
+	var	// --- app view elements
+		appElm = document.querySelector('section.todoapp'),
+		todoCountElm = appElm.querySelector('.todo-count'),
+		todoListElm = appElm.querySelector('ul.todo-list'),
+		filterElms = appElm.querySelectorAll('.filters a'),
+		toggleAllElm = appElm.querySelector('.toggle-all'),
+		clearElm = appElm.querySelector('button.clear-completed'),
+		mainElm = appElm.querySelector('.main'),
+		footerElm = appElm.querySelector('.footer'),
+		input = appElm.querySelector('.new-todo'),
+		
+		// --- some helpers
 		setDeltaUI = function(name, value) {
 			return  ui.model[0][name] += value;
 		},
@@ -18,17 +29,7 @@
 		getFilter = function(text) {
 			return (text.split('#/')[1] || '').split('/')[0] || 'all';
 		},
-		
-		// --- app view elements
-		appElm = document.querySelector('section.todoapp'),
-		todoCountElm = appElm.querySelector('.todo-count'),
-		todoListElm = appElm.querySelector('ul.todo-list'),
-		filterElms = appElm.querySelectorAll('.filters a'),
-		toggleAllElm = appElm.querySelector('.toggle-all'),
-		clearElm = appElm.querySelector('button.clear-completed'),
-		mainElm = appElm.querySelector('.main'),
-		footerElm = appElm.querySelector('.footer'),
-		input = appElm.querySelector('.new-todo'),
+
 
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
@@ -38,12 +39,14 @@
 				setTodoList(object, property === 'removeChild');
 			},
 			enrichModelCallback(object) { // as soon as new model comes in
-				var addProp = this.reinforceProperty; // make invisible (JSON)
+				var element = addViewItem(object, todoListElm);
 				// cacheing elements helps finding things faster later on
-				addProp(object, 'element', addViewItem(object));
-				addProp(object, 'label', object.element.querySelector('label'));
-				addProp(object, 'input', object.element.querySelector('.edit'));
-				addProp(object, 'toggle', object.element.querySelector('.toggle'));
+				this.reinforceProperty(object, 'view', {
+					element: element,
+					label: element.querySelector('label'),
+					input: element.querySelector('.edit'),
+					toggle: element.querySelector('.toggle')
+				});
 			}
 		}),
 		listCallbacks = {}, // defined later on
@@ -57,13 +60,18 @@
 			toggleAll: !todoLength && countAllLength,
 			filter: getFilter(location.href),
 			// cache elements
-			toggleAllElm: toggleAllElm,
-			clearElm: clearElm,
-			todoCountElm: todoCountElm,
-			filterElms: filterElms,
-			filterallElm: filterElms[0],
-			filteractiveElm: filterElms[1],
-			filtercompletedElm: filterElms[2]
+			view: {
+				toggleAllElm: toggleAllElm,
+				clearElm: clearElm,
+				todoCountElm: todoCountElm,
+				filterElms: filterElms,
+				filterallElm: filterElms[0],
+				filteractiveElm: filterElms[1],
+				filtercompletedElm: filterElms[2],
+				footerElm: footerElm,
+				mainElm: mainElm,
+				appElm: appElm
+			}
 		}],
 		ui = new VOM(uiModel, {
 			enhanceMap: ['countAll', 'todo', 'filter', 'toggleAll'],
@@ -79,13 +87,13 @@
 	// --- knows about model(s) and view
 	listCallbacks = {
 		text: function (property, object, value, oldValue) {
-			editViewItem(object.input, object.label, value);
+			editViewItem(object.view.input, object.view.label, value);
 		},
 		done: function (property, object, value, oldValue) {
 			setDeltaUI('todo', (value ? -1 : 1));
 			setDeltaUI('countAll', 0); // triggers rendering...
 			ui.model[0].toggleAll = !ui.model[0].todo;
-			markViewItem(object.element, object.toggle, value);
+			markViewItem(object.view.element, object.view.toggle, value);
 		},
 		parentNode: function (property, object, value, oldValue) { // add new
 			setDeltaUI('todo', 1);
@@ -93,7 +101,7 @@
 			ui.model[0].toggleAll = false;
 		},
 		removeChild: function (property, object, value, oldValue) {
-			removeViewItem(object.element);
+			removeViewItem(object.view.element);
 			if (!object.done) {
 				setDeltaUI('todo', -1);
 			}
@@ -103,22 +111,21 @@
 	},
 	uiCallbacks = {
 		filter: function (property, object, value, oldValue) {
-			filterCallback(object[property + value + 'Elm'],
-				object.filterElms, value);
+			filterCallback(object.view, object.view[property + value + 'Elm'], value);
 		},
 		countAll: function (property, object, value, oldValue) {
-			countAllCallback(value !== ui.model[0].todo, value);
+			countAllCallback(object.view, value !== ui.model[0].todo, value);
 		},
 		todo: function (property, object, value, oldValue) {
-			todoCallback(object.todoCountElm, value);
+			todoCallback(object.view.todoCountElm, value);
 		},
 		toggleAll: function (property, object, value, oldValue) {
-			toggleAllCallback(object.toggleAllElm, value);
+			toggleAllCallback(object.view.toggleAllElm, value);
 		}
 	};
 
 
-	// --- INIT UI: by setting the value to what is was, triggers callbacks...
+	// --- INIT UI: setting the value to what is was, triggers callbacks...
 	for (var key in ui.options.enhanceMap) {
 		ui.model[0][key] = ui.model[0][key];
 	}
@@ -128,25 +135,18 @@
 	// --- UI: doesn't know about view, only about models
 	appElm.addEventListener('click', function(e) {
 		var target = e.target,
-			show = '',
 			items = [],
 			checked = false,
 			uiItem = ui.model[0];
 
 		if (target.href) { // filters
-			show = getFilter(target.href);
-			if (ui.model[0].filter !== show) {
-				uiItem.filter = show;
-			}
+			uiItem.filter = getFilter(target.href);
 		} else if (target.classList.contains('destroy')) { // delete item
-			items = getListItem(target);
-			list.model._romovedIndex = items.index;
-			list.removeChild(items);
-		} else if (target === clearElm) { // delete all done
+			list.removeChild(getListItem(target));
+		} else if (target === uiItem.view.clearElm) { // delete all done
 			items = list.getElementsByProperty('done', true);
 
 			for (var n = items.length; n--; ) {
-				list.model._romovedIndex = items[n].index;
 				list.removeChild(items[n]);
 			}
 		} else if (target.classList.contains('toggle')) { // toggle item
@@ -160,22 +160,21 @@
 					items[n].done = checked;
 				}
 			}
-			uiItem.todo = target.checked ? 0 : items.length;
 		}
 	});
 
 	appElm.addEventListener('dblclick', function(e) {
 		var item = getListItem(e.target);
 
-		if (item && e.target === item.label) { // prepare edit mode
-			editViewItem(item.input);
+		if (item && e.target === item.view.label) { // prepare edit mode
+			editViewItem(item.view.input);
 		}
 	});
 
 	appElm.addEventListener('blur', function(e) { // remove edit mode
 		var item = getListItem(e.target);
 
-		if (item && item.input === e.target) {
+		if (item && item.view.input === e.target) {
 			item.text = e.target.value;
 		}
 	}, true);
@@ -184,14 +183,14 @@
 		var text = e.target.value.replace(/(?:^\s+|\s+$)/, ''),
 			editItem;
 
-		if(text && e.which === 13) {
-			if(e.target === input) {
+		if(text && (e.which === 13 || e.keyCode === 13)) {
+			if(e.target === input) { // new item
 				list.appendChild({
 					text: text,
 					done: false
 				});
 				e.target.value = '';
-			} else if (editItem = getListItem(e.target)) {
+			} else if (editItem = getListItem(e.target)) { // edit existing
 				editItem.text = text;
 			}
 		}
@@ -200,30 +199,27 @@
 
 
 	// --- list view: all functions referenced inside list model
-	// no external references (all variables inside scope)
+	// no external element references (all variables inside scope)
 	function getTemplate() {
 		return document.querySelector('#item-template').innerHTML;
 	}
 
-	function addViewItem(item) {
-		var docFragment = addViewItem.docFragment = // cache for next time
-				addViewItem.docFragment || document.createDocumentFragment(),
-			fragment = addViewItem.fragment = // cache for next time
-				addViewItem.fragment || document.createElement('div'),
-			template = addViewItem.template = // cache for next time;
-				addViewItem.template || getTemplate();
+	function addViewItem(item, todoListElm) {
+		addViewItem.docFragment = addViewItem.docFragment || document.createDocumentFragment(),
+		addViewItem.fragment = addViewItem.fragment || document.createElement('div'),
+		addViewItem.template =  addViewItem.template || getTemplate();
 
-		fragment.innerHTML = template
+		addViewItem.fragment.innerHTML = addViewItem.template
 			.replace('{{id}}', item.id)
 			.replace(/{{text}}/g, item.text)
-			.replace(/{{completed}}/, item.done ? ' completed' : '')
+			.replace('{{completed}}', item.done ? ' completed' : '')
 			.replace('{{toggled}}', item.done ? ' checked=""' : '');
 		
 		lazy(function() {
-			todoListElm.appendChild(docFragment); // TODO: todoListElm
+			todoListElm.appendChild(addViewItem.docFragment);
 		}, 'addViewItem');
 
-		return docFragment.appendChild(fragment.children[0]);
+		return addViewItem.docFragment.appendChild(addViewItem.fragment.children[0]);
 	}
 
 	function removeViewItem(elm) {
@@ -252,7 +248,7 @@
 
 
 	// --- app view: all functions referenced inside list model
-	// TODO: clean up element finding...
+	// no external element references (all variables inside scope)
 	function todoCallback(elm, count) {
 		lazy(function() {
 			elm.innerHTML = '<strong>' + count + '</strong> item' +
@@ -260,24 +256,26 @@
 		}, 'todoCallback');
 	}
 
-	function filterCallback(link, elms, value) {
-		for (var n = elms.length; n--; ) { // TODO: cache
+	function filterCallback(viewElms, link, value) {
+		var elms = viewElms.filterElms;
+
+		for (var n = elms.length; n--; ) {
 			elms[n].classList.remove('selected'); // TODO: class name optional
 		}
 		link.classList.add('selected');
-		filterView(value);
+		filterView(viewElms.appElm, value);
 	}
 
-	function filterView(value) { // TODO: appElm; make changes on model level (is a rule)
+	function filterView(appElm, value) { // TODO: make changes on model level (is a rule)
 		appElm.classList.remove('all', 'completed', 'active');
 		appElm.classList.add(value);
 	}
 
-	function countAllCallback(toggle, countAll) { // TODO: clearElm, footerElm; optimize
+	function countAllCallback(viewElms, toggle, countAll) {
 		lazy(function() {
-			clearElm.style.display = toggle ? '' : 'none';
-			footerElm.style.display = countAll ? '' : 'none';
-			mainElm.style.display = countAll ? '' : 'none';
+			viewElms.clearElm.style.display = toggle ? '' : 'none';
+			viewElms.footerElm.style.display = countAll ? '' : 'none';
+			viewElms.mainElm.style.display = countAll ? '' : 'none';
 		}, 'countAllCallback');
 	}
 
