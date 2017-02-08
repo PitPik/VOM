@@ -59,6 +59,7 @@
 			todo: todoLength,
 			toggleAll: !todoLength && countAllLength,
 			filter: getFilter(location.href),
+			initialized: false,
 			// cache elements
 			viewElms: {
 				toggleAllElm: toggleAllElm,
@@ -119,7 +120,7 @@
 			todoCallback(object.viewElms.todoCountElm, value);
 		},
 		toggleAll: function (property, object, value, oldValue) {
-			value !== oldValue && 
+			(!object.initialized || value !== oldValue) &&
 				toggleAllCallback(object.viewElms.toggleAllElm, value);
 		}
 	};
@@ -129,8 +130,7 @@
 	for (var key in ui.options.enhanceMap) {
 		ui.model[0][key] = ui.model[0][key];
 	}
-	// needs extra attention (uiCallbacks.toggleAll -> value !== oldValue && ..)
-	toggleAllCallback(ui.model[0].viewElms.toggleAllElm, ui.model[0].toggleAll);
+	ui.model[0].initialized = true;
 
 
 	// --- UI: doesn't know about view, only about models
