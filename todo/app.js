@@ -105,7 +105,7 @@
 				setDeltaUI('todo', -1);
 			}
 			setDeltaUI('countAll', -1);
-			ui.model[0].toggleAll = !ui.model[0].todo && ui.model[0].countAll;
+			ui.model[0].toggleAll = !ui.model[0].todo && !!ui.model[0].countAll;
 		}
 	},
 	uiCallbacks = {
@@ -119,7 +119,8 @@
 			todoCallback(object.viewElms.todoCountElm, value);
 		},
 		toggleAll: function (property, object, value, oldValue) {
-			toggleAllCallback(object.viewElms.toggleAllElm, value);
+			value !== oldValue && 
+				toggleAllCallback(object.viewElms.toggleAllElm, value);
 		}
 	};
 
@@ -128,13 +129,14 @@
 	for (var key in ui.options.enhanceMap) {
 		ui.model[0][key] = ui.model[0][key];
 	}
+	// needs extra attention (uiCallbacks.toggleAll -> value !== oldValue && ..)
+	toggleAllCallback(ui.model[0].viewElms.toggleAllElm, ui.model[0].toggleAll);
 
 
 	// --- UI: doesn't know about view, only about models
 	appElm.addEventListener('click', function(e) {
 		var target = e.target,
 			items = [],
-			checked = false,
 			uiItem = ui.model[0];
 
 		if (target.href) { // filters
@@ -150,10 +152,9 @@
 			getListItem(target).done = target.checked;
 		} else if (target.classList.contains('toggle-all')) { // toggle all
 			items = list.getElementsByProperty('done');
-			checked = target.checked; // debounce
 			for (var n = items.length; n--; ) {
-				if (items[n].done !== checked) {
-					items[n].done = checked;
+				if (items[n].done !== target.checked) {
+					items[n].done = target.checked;
 				}
 			}
 		}
@@ -217,7 +218,7 @@
 		elm.parentNode.removeChild(elm);
 	}
 
-	function editViewItem(input, label, text) { // TODO: follow guids: .editing; ESC; empty -> destroy
+	function editViewItem(input, label, text) { // TODO: follow guides: .editing; ESC; empty -> destroy
 		var style = '';
 
 		if (label) {
