@@ -59,7 +59,6 @@
 			todo: todoLength,
 			toggleAll: !todoLength && !!countAllLength,
 			filter: getFilter(location.href),
-			initiated: false,
 			viewElms: { // cache elements
 				toggleAllElm: toggleAllElm,
 				clearElm: clearElm,
@@ -91,13 +90,18 @@
 		done: function (property, object, value, oldValue) {
 			setDeltaUI('todo', (value ? -1 : 1));
 			setDeltaUI('countAll', 0); // triggers rendering...
-			ui.model[0].toggleAll = !ui.model[0].todo;
+			var toggleAll = !ui.model[0].todo;
+			if (ui.model[0].toggleAll !== toggleAll) { // avoid flood
+				ui.model[0].toggleAll = toggleAll;
+			}
 			markViewItem(object.viewElms.element, object.viewElms.toggle, value);
 		},
 		parentNode: function (property, object, value, oldValue) { // add new
 			setDeltaUI('todo', 1);
 			setDeltaUI('countAll', 1);
-			ui.model[0].toggleAll = false;
+			if (ui.model[0].toggleAll !== false) { // avoid flood
+				ui.model[0].toggleAll = false;
+			}
 		},
 		removeChild: function (property, object, value, oldValue) {
 			removeViewItem(object.viewElms.element);
@@ -105,7 +109,10 @@
 				setDeltaUI('todo', -1);
 			}
 			setDeltaUI('countAll', -1);
-			ui.model[0].toggleAll = !ui.model[0].todo && !!ui.model[0].countAll;
+			var toggleAll = !ui.model[0].todo && !!ui.model[0].countAll;
+			if (ui.model[0].toggleAll !== toggleAll) { // avoid flood
+				ui.model[0].toggleAll = toggleAll;
+			}
 		}
 	},
 	uiCallbacks = {
@@ -119,8 +126,7 @@
 			todoCallback(object.viewElms.todoCountElm, value);
 		},
 		toggleAll: function (property, object, value, oldValue) {
-			(!object.initiated || value !== oldValue) &&
-				toggleAllCallback(object.viewElms.toggleAllElm, value);
+			toggleAllCallback(object.viewElms.toggleAllElm, value);
 		}
 	};
 
@@ -129,7 +135,6 @@
 	for (var key in ui.options.enhanceMap) {
 		ui.model[0][key] = ui.model[0][key];
 	}
-	ui.model[0].initiated = true;
 
 
 	// --- UI: doesn't know about view, only about models
