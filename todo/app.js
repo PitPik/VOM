@@ -151,11 +151,9 @@
 		} else if (target.classList.contains('toggle')) { // toggle item
 			getListItem(target).done = target.checked;
 		} else if (target.classList.contains('toggle-all')) { // toggle all
-			items = list.getElementsByProperty('done');
+			items = list.getElementsByProperty('done', !target.checked);
 			for (var n = items.length; n--; ) {
-				if (items[n].done !== target.checked) {
-					items[n].done = target.checked;
-				}
+				items[n].done = target.checked;
 			}
 		}
 	});
