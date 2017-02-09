@@ -36,7 +36,7 @@
 			enhanceMap: ['text', 'done'],
 			setterCallback: function(property, object, value, oldValue) {
 				listCallbacks[property](property, object, value, oldValue);
-				setTodoList(object, property === 'removeChild');
+				setTodoList(object);
 			},
 			enrichModelCallback(object) { // as soon as new model comes in
 				var element = addViewItem(object, todoListElm, template);
@@ -274,7 +274,7 @@
 		return storage('todo-vom', 'list', 'model') || [];
 	}
 
-	function setTodoList(data, deleteItem) {
+	function setTodoList(data) {
 		lazy(function() { // lazy data save as we save the whole..
 			storage('todo-vom', 'list', 'model', list.model);
 		}, 'setTodoList');
