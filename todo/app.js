@@ -57,7 +57,7 @@
 		uiModel = [{
 			countAll: countAllLength,
 			todo: todoLength,
-			toggleAll: !todoLength && countAllLength,
+			toggleAll: !todoLength && !!countAllLength,
 			filter: getFilter(location.href),
 			initialized: false,
 			// cache elements
