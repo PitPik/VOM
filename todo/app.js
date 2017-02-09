@@ -59,8 +59,7 @@
 			todo: todoLength,
 			toggleAll: !todoLength && !!countAllLength,
 			filter: getFilter(location.href),
-			// cache elements
-			viewElms: {
+			viewElms: { // cache elements
 				toggleAllElm: toggleAllElm,
 				clearElm: clearElm,
 				todoCountElm: todoCountElm,
