@@ -45,57 +45,15 @@
 			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
 		</footer>
 		<script type="text/template" id="item-template">
-			<li id="{{id}}" class="todo-list-item{{completed}}">
-				<input class="toggle" type="checkbox"{{toggled}}>
+			<li id="{{id}}" class="todo-list-item{{#done}} completed{{/done}}">
+				<input class="toggle" type="checkbox"{{#done}} checked=""{{/done}}>
 				<label>{{text}}</label>
 				<button class="destroy"></button>
 				<input class="edit" value="{{text}}">
 			</li>
 		</script>
 		<script type="text/javascript" src="../VOM.js"></script>
+		<script type="text/javascript" src="../template.js"></script>
 		<script type="text/javascript" src="app.js"></script>
-		<script type="text/javascript">
-		(function() {
-			// Speed test done like in https://lhorie.github.io/todomvc-perf-comparison/todomvc-benchmark/
-
-			return; // skip testing...
-
-			var numberOfItemsToAdd = 150,
-				contentDocument = document.body.querySelector('.todoapp'),
-				newTodo = document.body.querySelector('.new-todo');
-
-			setTimeout(function() {
-				var keydownEvent = document.createEvent('Event');
-				keydownEvent.initEvent('keypress', true, true);
-				keydownEvent.which = 13; // VK_ENTER
-				var inputEvent = document.createEvent('Event');
-				inputEvent.initEvent('input', true, true);
-
-				console.time('create');
-				for (var i = 0; i < numberOfItemsToAdd; i++) {
-					newTodo.value = 'VOM ------- Something to do ' + i;
-					newTodo.dispatchEvent(inputEvent);
-					newTodo.dispatchEvent(keydownEvent);
-				}
-				console.timeEnd('create');
-			}, 1000);
-
-			setTimeout(function() {
-				var checkboxes = contentDocument.querySelectorAll('.toggle');
-				console.time('mark');
-				for (var i = 0; i < checkboxes.length; i++)
-					checkboxes[i].click();
-				console.timeEnd('mark');
-			}, 2000);
-
-			setTimeout(function() {
-				var deleteButtons = contentDocument.querySelectorAll('.destroy');
-				console.time('destroy');
-				for (var i = deleteButtons.length - 1; i > -1; i--)
-					deleteButtons[i].click();
-				console.timeEnd('destroy');
-			}, 3000);
-		})();
-		</script>
 	</body>
 </html>

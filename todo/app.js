@@ -13,23 +13,7 @@
 		mainElm = appElm.querySelector('.main'),
 		footerElm = appElm.querySelector('.footer'),
 		input = appElm.querySelector('.new-todo'),
-		template = document.querySelector('#item-template'),
-		
-		// --- some helpers
-		setDeltaUI = function(name, value) {
-			return  ui.model[0][name] += value;
-		},
-		getListItem = function(elm) {
-			var item = closest(elm, '[id]');
-
-			return item ? list.getElementById(item.id) : null;
-		},
-		closest = function(element, selector, root) {
-			return element && element.closest(selector);
-		},
-		getFilter = function(text) {
-			return (text.split('#/')[1] || '').split('/')[0] || 'all';
-		},
+		template = Template.render(document.querySelector('#item-template')),
 
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
@@ -114,7 +98,8 @@
 				ui.model[0].toggleAll = toggleAll;
 			}
 		}
-	},
+	};
+
 	uiCallbacks = {
 		filter: function (property, object, value, oldValue) {
 			filterCallback(object.viewElms, object.viewElms[property + value + 'Elm'], value);
@@ -162,14 +147,6 @@
 		}
 	});
 
-	appElm.addEventListener('dblclick', function(e) {
-		var item = getListItem(e.target);
-
-		if (item && e.target === item.viewElms.label) { // prepare edit mode
-			editViewItem(item.viewElms.input);
-		}
-	});
-
 	appElm.addEventListener('blur', function(e) { // remove edit mode
 		var item = getListItem(e.target);
 
@@ -195,25 +172,21 @@
 		}
 	});
 
+	appElm.addEventListener('dblclick', function(e) {
+		var item = getListItem(e.target);
+
+		if (item && e.target === item.viewElms.label) { // prepare edit mode
+			editViewItem(item.viewElms.input);
+		}
+	});
+
 
 	// --- list view: all functions referenced inside list model
 	// no external element references (all variables inside scope)
-	function addViewItem(item, todoListElm, template) {
-		addViewItem.docFragment = addViewItem.docFragment || document.createDocumentFragment(),
-		addViewItem.fragment = addViewItem.fragment || document.createElement('div'),
-		addViewItem.template =  addViewItem.template || template.innerHTML;
-
-		addViewItem.fragment.innerHTML = addViewItem.template
-			.replace('{{id}}', item.id)
-			.replace(/{{text}}/g, item.text)
-			.replace('{{completed}}', item.done ? ' completed' : '')
-			.replace('{{toggled}}', item.done ? ' checked=""' : '');
-		
-		lazy(function() {
-			todoListElm.appendChild(addViewItem.docFragment);
-		}, 'addViewItem');
-
-		return addViewItem.docFragment.appendChild(addViewItem.fragment.children[0]);
+	function addViewItem(data, todoListElm, template) {
+		return Template.render(template, data, function(element) { // async
+			todoListElm.appendChild(element);
+		});
 	}
 
 	function removeViewItem(elm) {
@@ -246,7 +219,7 @@
 		lazy(function() {
 			elm.innerHTML = '<strong>' + count + '</strong> item' +
 				(count === 1 ? '' : 's') + ' left';
-		}, 'todoCallback');
+		}, todoCallback);
 	}
 
 	function filterCallback(viewElms, link, value) {
@@ -265,7 +238,7 @@
 			viewElms.clearElm.style.display = toggle ? '' : 'none';
 			viewElms.footerElm.style.display = countAll ? '' : 'none';
 			viewElms.mainElm.style.display = countAll ? '' : 'none';
-		}, 'countAllCallback');
+		}, countAllCallback);
 	}
 
 	function toggleAllCallback(elm, value) {
@@ -273,7 +246,7 @@
 	}
 
 
-	// --- local storage helper functions
+	// --- local storage and other helper functions
 	function getTodoList() {
 		return storage('todo-vom', 'list', 'model') || [];
 	}
@@ -281,7 +254,7 @@
 	function setTodoList(data) {
 		lazy(function() { // lazy data save as we save the whole..
 			storage('todo-vom', 'list', 'model', list.model);
-		}, 'setTodoList');
+		}, setTodoList);
 	}
 
 	function storage(scope, component, type, value) {
@@ -292,9 +265,27 @@
 		}
 	}
 
-	function lazy(fn, name) {
-		clearTimeout(lazy[name]);
-		lazy[name] = setTimeout(fn, 0);
+	function setDeltaUI(name, value) {
+		return  ui.model[0][name] += value;
+	}
+
+	function getListItem(elm) {
+		var item = closest(elm, '[id]');
+
+		return item ? list.getElementById(item.id) : null;
+	}
+
+	function closest(element, selector, root) {
+		return element && element.closest(selector);
+	}
+
+	function getFilter(text) {
+		return (text.split('#/')[1] || '').split('/')[0] || 'all';
+	}
+
+	function lazy(fn, obj) {
+		clearTimeout(obj.timer);
+		obj.timer = setTimeout(fn, 0);
 	}
 
 })(window);
