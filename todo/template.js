@@ -75,20 +75,21 @@
 		return function fastReplace(data) {
 			for (var n = 0, l = html.length, out = []; n < l; n++) {
 				out.push(html[n]);
-				data[keys[n]] && out.push(data[keys[n]]);
+				data[keys[n]] !== undefined &&
+					data[keys[n]] && out.push(data[keys[n]]);
 			}
 			return out.join('');
 		};
 	}
 
-	function loop(func, key) { // key???
+	function loop(func, key) { // key
 		return function fastLoop(data) {
 			if (isArray(data)) {
 				for (var n = 0, l = data.length, outHTML = []; n < l; n++) {
 					outHTML.push(func(data[n]));
 				}
 				return outHTML.join('');
-			} else if (data[key]) {
+			} else if (data[key] !== undefined && data[key]) {
 				return func(data);
 			}
 		}
@@ -100,7 +101,7 @@
 		var foo = [];
 		var parts = html.replace(sizzler, function(all, $1, $2, $3) {
 				var coll = $3.indexOf('{{#') !== -1 ?
-						loop(sizzleTemplate(_this, $3, true), $1) :
+						loop(sizzleTemplate(_this, $3, true), $1) : // recursion
 						loop(replace($3, splitter), $1);
 
 				out.push(function collector(data) {
