@@ -13,7 +13,7 @@
 		mainElm = appElm.querySelector('.main'),
 		footerElm = appElm.querySelector('.footer'),
 		input = appElm.querySelector('.new-todo'),
-		template = Template.render(document.querySelector('#item-template')),
+		template = new Template(document.querySelector('#item-template').innerHTML),
 
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
@@ -184,7 +184,7 @@
 	// --- list view: all functions referenced inside list model
 	// no external element references (all variables inside scope)
 	function addViewItem(data, todoListElm, template) {
-		return Template.render(template, data, function(element) { // async
+		return template.render(data, function(element) { // async
 			todoListElm.appendChild(element);
 		});
 	}
