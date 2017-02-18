@@ -81,14 +81,14 @@
 		};
 	}
 
-	function loop(func) {
+	function loop(func, key) { // key???
 		return function fastLoop(data) {
 			if (isArray(data)) {
 				for (var n = 0, l = data.length, outHTML = []; n < l; n++) {
 					outHTML.push(func(data[n]));
 				}
 				return outHTML.join('');
-			} else {
+			} else if (data[key]) {
 				return func(data);
 			}
 		}
@@ -100,12 +100,11 @@
 		var foo = [];
 		var parts = html.replace(sizzler, function(all, $1, $2, $3) {
 				var coll = $3.indexOf('{{#') !== -1 ?
-						loop(sizzleTemplate(_this, $3, true)) :
-						loop(replace($3, splitter));
+						loop(sizzleTemplate(_this, $3, true), $1) :
+						loop(replace($3, splitter), $1);
 
 				out.push(function collector(data) {
-					data = typeof data[$1] === 'object' ? data[$1] : data;
-					return data[$1] ? coll(data) : '';
+					return coll(typeof data[$1] === 'object' ? data[$1] : data);
 				});
 				return splitter;
 			}).split(splitter);
