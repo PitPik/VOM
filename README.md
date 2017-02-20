@@ -35,7 +35,7 @@ After initialisation of the model, it is then enriched with ```parentNode``` whi
 ```javascript
 [{
     foo: 'bar',
-    id: 'id-01', // read only
+    id: 'id-01', // read only if not yet in model
     index: (...), // dynamic, read only
     parentNode: (...) // dynamic
 }, ...]
