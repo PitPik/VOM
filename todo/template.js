@@ -15,6 +15,7 @@
 			this.options = {
 				appendCallback: undefined,
 				partials: {},
+				helpers: {},
 				splitter: '|##|'
 			};
 			init(this, options || {}, template);
@@ -23,8 +24,8 @@
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
-			_this.helpers =  _this.options.helpers || {};
-			_this.partials = _this.options.partials || {};
+			_this.helpers =  _this.options.helpers;
+			_this.partials = _this.options.partials;
 			_this.template = {
 				docFragment: document.createDocumentFragment(),
 				fragment: document.createElement('div'),
@@ -37,16 +38,15 @@
 
 	Template.prototype = {
 		render: function(data, appendCallback) {
-			var template = this.template,
-				fragment = template.fragment;
+			var tmpl = this.template;
 
-			appendCallback = appendCallback || template.appendCallback;
-			fragment.innerHTML = template.render(data);
-			appendCallback && Template.lazy(template, function append() {
-				appendCallback(template.docFragment);
+			appendCallback = appendCallback || tmpl.appendCallback;
+			tmpl.fragment.innerHTML = tmpl.render(data);
+			appendCallback && Template.lazy(tmpl, function append() {
+				appendCallback(tmpl.docFragment);
 			});
 
-			return template.docFragment.appendChild(fragment.children[0]);
+			return tmpl.docFragment.appendChild(tmpl.fragment.children[0]);
 		},
 		compile: function(template) {
 			this.template.render = sizzleTemplate(this, template);
@@ -127,13 +127,13 @@
 	function sizzleTemplate(_this, html) {
 		var partCollector = [];
 		var output = [];
-		var parts = html.replace(sizzler, function(all, $0, $1, $2, $3) {
-				var part = $3.match('{{#') ?
-						section(_this, sizzleTemplate(_this, $3), $1) :
-						section(_this, variable(_this, $3), $1, $0 === '^');
+		var parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
+				var part = $4.match('{{#') ?
+						section(_this, sizzleTemplate(_this, $4), $2) :
+						section(_this, variable(_this, $4), $2, $1 === '^');
 
 				partCollector.push(function collector(data) {
-					return part(typeof data[$1] === 'object' ? data[$1] : data);
+					return part(typeof data[$2] === 'object' ? data[$2] : data);
 				});
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
