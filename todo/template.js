@@ -16,7 +16,8 @@
 				appendCallback: undefined,
 				partials: {},
 				helpers: {},
-				splitter: '|##|'
+				splitter: '|##|',
+				doEscape: true
 			};
 			init(this, options || {}, template);
 		},
@@ -101,7 +102,8 @@
 		html = html.replace(/({{2,3})([>!&]\s*)*(\w+\s*)*}{2,3}/g,
 			function(all, $1, $2, $3) {
 				var isComment = $2 && $2[0] === '!';
-				var isUnescape = $1 === '{{{' || $2 && $2[0] === '&';
+				var isUnescape = !_this.options.doEscape ||
+						$1 === '{{{' || $2 && $2[0] === '&';
 				var isPartial = $2 && $2[0] === '>';
 
 				if (isComment) {
