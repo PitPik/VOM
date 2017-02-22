@@ -23,8 +23,7 @@
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
-
-			_this.helpers = {};
+			_this.helpers =  _this.options.helpers || {};
 			_this.partials = _this.options.partials || {};
 			_this.template = {
 				docFragment: document.createDocumentFragment(),
@@ -34,7 +33,7 @@
 				render: sizzleTemplate(_this, template) // pre-rendering
 			};
 		},
-		sizzler = /{{#(\w*)\s*(.*?)}}([\S\s]*?){{\/\1}}/g;
+		sizzler = /{{(#|\^)(\w*)\s*(.*?)}}([\S\s]*?){{\/\2}}/g;
 
 	Template.prototype = {
 		render: function(data, appendCallback) {
@@ -50,7 +49,7 @@
 			return template.docFragment.appendChild(fragment.children[0]);
 		},
 		compile: function(template) {
-			this.template.render = sizzleTemplate(this, template); // return??
+			this.template.render = sizzleTemplate(this, template);
 		},
 		template: function(data) {
 			return this.template.render(data);
@@ -76,39 +75,50 @@
 
 	return Template;
 
-	/* ------------- module functions  -------------- */
-
 	function isArray(obj) {
 		return Array.isArray && Array.isArray(obj) ||
 			Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
-	function variable(html, splitter) {
+	function variable(_this, html) {
 		var keys = [];
 
-		html = html.replace(/\{\{(\w+)\}\}/g,
-			function(all, $1) {
-				keys.push($1);
-				return splitter;
-			}).split(splitter);
+		html = html.replace(/{{([>!]\s*)*(\w+\s*)*}}/g,
+			function(all, $1, $2) {
+				if ($1 && $1[0] === '!') {
+					return '';
+				}
+				keys.push($1 ? sizzleTemplate(_this, _this.partials[$2]) : $2);
+				return _this.options.splitter;
+			}).split(_this.options.splitter);
 
 		return function fastReplace(data) {
-			for (var n = 0, l = html.length, out = []; n < l; n++) {
+			for (var n = 0, l = html.length, out = [], text = ''; n < l; n++) {
 				out.push(html[n]);
-				data[keys[n]] !== false && out.push(data[keys[n]]);
+				if (keys[n] !== undefined) {
+					text = keys[n].name === 'executor' ?
+						keys[n](data) : data[keys[n]];
+					text !== false && out.push(text);
+				}
 			}
 			return out.join('');
 		};
 	}
 
-	function section(func, key) { // key
+	function section(_this, func, key, negative) {
 		return function fastLoop(data) {
-			if (isArray(data)) {
-				for (var n = 0, l = data.length, outHTML = []; n < l; n++) {
-					outHTML.push(func(data[n]));
+			var hasData = data[key] !== undefined;
+
+			if (_this.helpers[key]) { // helpers
+				return _this.helpers[key](data, func(data));
+			} else if (isArray(data)) { // array
+				for (var n = 0, l = data.length, out = []; n < l; n++) {
+					out.push(func(data[n]));
 				}
-				return outHTML.join('');
-			} else if (data[key] !== false) {
+				return out.join('');
+			} else if (negative && !hasData) { // not (^)
+				return func(data);
+			} else if (!negative && hasData && data[key] !== false) { // data
 				return func(data);
 			}
 		}
@@ -116,32 +126,28 @@
 
 	function sizzleTemplate(_this, html) {
 		var partCollector = [];
-		var splitter = _this.options.splitter;
 		var output = [];
-		var parts = html.replace(sizzler, function(all, $1, $2, $3) {
-				var func = $3.match(/{{(#|^|!|>)\s*(.*?)}}/) || [];
-				var part = // func[1] && func[1] === '>' && _this.partials[func[2]] ?
-						// section(sizzleTemplate(_this, _this.partials[func[2]]), $1) :
-						func[1] ?
-						section(sizzleTemplate(_this, $3), $1) :
-						section(variable($3, splitter), $1); // pre-render
+		var parts = html.replace(sizzler, function(all, $0, $1, $2, $3) {
+				var part = $3.match('{{#') ?
+						section(_this, sizzleTemplate(_this, $3), $1) :
+						section(_this, variable(_this, $3), $1, $0 === '^');
 
 				partCollector.push(function collector(data) {
 					return part(typeof data[$1] === 'object' ? data[$1] : data);
 				});
-				return splitter;
-			}).split(splitter);
+				return _this.options.splitter;
+			}).split(_this.options.splitter);
 
 		for (var n = 0, l = parts.length; n < l; n++) { // rearrange
-			output.push(variable(parts[n], splitter));
+			output.push(variable(_this, parts[n]));
 			partCollector[n] && output.push(partCollector[n]);
 		}
 
 		return function executor(data) {
-			for (var n = 0, l = output.length, outHTML = []; n < l; n++) {
-				outHTML.push(output[n](data));
+			for (var n = 0, l = output.length, out = []; n < l; n++) {
+				out.push(output[n](data));
 			}
-			return outHTML.join('');
+			return out.join('');
 		}
 	}
 }));
