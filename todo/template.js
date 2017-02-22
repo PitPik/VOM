@@ -57,7 +57,7 @@
 		registerHelper: function(name, fn) {
 			this.helpers[name] = fn;
 		},
-		unregisterHelper: function(argument) {
+		unregisterHelper: function(name) {
 			delete this.helpers[name];
 		},
 		registerPartial: function(name, html) {
