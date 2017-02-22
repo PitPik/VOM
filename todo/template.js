@@ -8,7 +8,7 @@
 	} else {
 		root.Template = factory(root);
 	}
-}(this, function(window) {
+}(this, function TemplateFactory(window) {
 	'use strict';
 
 	var Template = function(template, options) {
@@ -34,7 +34,17 @@
 				render: sizzleTemplate(_this, template) // pre-rendering
 			};
 		},
-		sizzler = /{{(#|\^)(\w*)\s*(.*?)}}([\S\s]*?){{\/\2}}/g;
+		sizzler = /{{(#|\^)(\w*)\s*(.*?)}}([\S\s]*?){{\/\2}}/g,
+		entityMap = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#39;',
+			'/': '&#x2F;',
+			'`': '&#x60;',
+			'=': '&#x3D;'
+		};
 
 	Template.prototype = {
 		render: function(data, appendCallback) {
@@ -75,6 +85,11 @@
 
 	return Template;
 
+	function escapeHtml(string) {
+		return String(string).replace(/[&<>"'`=\/]/g, function escape(char) {
+			return entityMap[char];
+		});
+	}
 	function isArray(obj) {
 		return Array.isArray && Array.isArray(obj) ||
 			Object.prototype.toString.call(obj) === "[object Array]";
@@ -83,12 +98,18 @@
 	function variable(_this, html) {
 		var keys = [];
 
-		html = html.replace(/{{([>!]\s*)*(\w+\s*)*}}/g,
-			function(all, $1, $2) {
-				if ($1 && $1[0] === '!') {
+		html = html.replace(/({{2,3})([>!&]\s*)*(\w+\s*)*}{2,3}/g,
+			function(all, $1, $2, $3) {
+				var isComment = $2 && $2[0] === '!';
+				var isUnescape = $1 === '{{{' || $2 && $2[0] === '&';
+				var isPartial = $2 && $2[0] === '>';
+
+				if (isComment) {
 					return '';
 				}
-				keys.push($1 ? sizzleTemplate(_this, _this.partials[$2]) : $2);
+				keys.push(isPartial ?
+					[sizzleTemplate(_this, _this.partials[$3])] :
+					[$3, isUnescape]);
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
 
@@ -96,9 +117,10 @@
 			for (var n = 0, l = html.length, out = [], text = ''; n < l; n++) {
 				out.push(html[n]);
 				if (keys[n] !== undefined) {
-					text = keys[n].name === 'executor' ?
-						keys[n](data) : data[keys[n]];
-					text !== false && out.push(text);
+					text = keys[n][0].name === 'executor' ? keys[n][0](data) :
+						data[keys[n][0]] && (keys[n][1] ? data[keys[n][0]] :
+							escapeHtml(data[keys[n][0]]));
+					text !== 'false' && text !== undefined && out.push(text);
 				}
 			}
 			return out.join('');
