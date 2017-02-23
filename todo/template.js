@@ -161,7 +161,9 @@
 		return function fastLoop(data, dataTree) {
 			var hasData = data[key] !== undefined;
 
-			if (_this.helpers[key]) { // helpers
+			if (hasData && typeof data[key] === 'function') { // functions
+				return data[key](data, func(data, dataTree), dataTree);
+			} else if (_this.helpers[key]) { // helpers
 				return _this.helpers[key](data, func(data, dataTree), dataTree);
 			} else if (isArray(data) && data.length) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
