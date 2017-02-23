@@ -13,7 +13,8 @@
 		mainElm = appElm.querySelector('.main'),
 		footerElm = appElm.querySelector('.footer'),
 		input = appElm.querySelector('.new-todo'),
-		template = new Template(document.querySelector('#item-template').innerHTML),
+		template = new Template(document.querySelector('#item-template').innerHTML,
+			{doEscape: false}),
 
 		// --- model for list of todos
 		list = new VOM(getTodoList(), {
