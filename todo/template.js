@@ -17,7 +17,8 @@
 				partials: {},
 				helpers: {},
 				splitter: '|##|',
-				doEscape: true
+				doEscape: true,
+				tags: ['{{', '}}']
 			};
 			init(this, options || {}, template);
 		},
@@ -25,6 +26,7 @@
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
+			switchTags(_this, _this.options.tags);
 			_this.helpers =  _this.options.helpers;
 			_this.partials = _this.options.partials;
 			_this.template = {
@@ -35,7 +37,6 @@
 				render: sizzleTemplate(_this, template) // pre-rendering
 			};
 		},
-		sizzler = /{{(#|\^)(\w*)\s*(.*?)}}([\S\s]*?){{\/\2}}/g,
 		entityMap = {
 			'&': '&amp;',
 			'<': '&lt;',
@@ -51,7 +52,7 @@
 		render: function(data, appendCallback) {
 			var tmpl = this.template;
 
-			appendCallback = appendCallback || tmpl.appendCallback;
+			appendCallback = appendCallback || tmpl.appendCallback;
 			tmpl.fragment.innerHTML = tmpl.render(data);
 			appendCallback && Template.lazy(tmpl, function append() {
 				appendCallback(tmpl.docFragment);
@@ -76,6 +77,9 @@
 		},
 		unregisterPartial: function(name) {
 			delete this.partials[name];
+		},
+		setTags: function(tags) {
+			switchTags(this, tags);
 		}
 	};
 
@@ -91,22 +95,48 @@
 			return entityMap[char];
 		});
 	}
+
 	function isArray(obj) {
 		return Array.isArray && Array.isArray(obj) ||
 			Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
+	function switchTags(_this, tags) {
+		var isDefault = tags[0] === '{{';
+		var _tags = isDefault ? ['{{2,3}', '}{2,3}'] : tags;
+
+		_this.options.tags = tags; // or _tags??
+
+		_this.variableRegExp = new RegExp(
+			'(' + _tags[0] + ')([>!&=]\\s*)*([\\w<>%=\\s*]+)*' + _tags[1], 'g');
+
+		_this.sectionRegExp = new RegExp(
+			_tags[0] + '(#|\\^)(\\w*)\\s*(.*?)' + _tags[1] + '([\\S\\s]*?)' +
+			_tags[0] + '\\/\\2' + _tags[1], 'g');
+	}
+
+	function findData(data, dataTree, key) {
+		// if (data[key]) {
+		// 	return data[key];
+		// }
+		for (var n = dataTree.length; n--; ) {
+			if (dataTree[n][key] !== undefined) {
+				return dataTree[n][key];
+			}
+		}
+	}
+
 	function variable(_this, html) {
 		var keys = [];
 
-		html = html.replace(/({{2,3})([>!&]\s*)*(\w+\s*)*}{2,3}/g,
+		html = html.replace(_this.variableRegExp,
 			function(all, $1, $2, $3) {
-				var isComment = $2 && $2[0] === '!';
+				var isIgnore = $2 && ($2[0] === '!' || $2[0] === '=');
 				var isUnescape = !_this.options.doEscape ||
-						$1 === '{{{' || $2 && $2[0] === '&';
+						$1 === '{{{' || $2 && $2[0] === '&';
 				var isPartial = $2 && $2[0] === '>';
 
-				if (isComment) {
+				if (isIgnore) {
 					return '';
 				}
 				keys.push(isPartial ?
@@ -115,13 +145,15 @@
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
 
-		return function fastReplace(data) {
+		return function fastReplace(data, dataTree) {
 			for (var n = 0, l = html.length, out = [], text = ''; n < l; n++) {
 				out.push(html[n]);
 				if (keys[n] !== undefined) {
-					text = keys[n][0].name === 'executor' ? keys[n][0](data) :
-						data[keys[n][0]] && (keys[n][1] ? data[keys[n][0]] :
-							escapeHtml(data[keys[n][0]]));
+					text = data[keys[n][0]] ||
+						findData(data, dataTree, keys[n][0]); // walk up tree
+					text = keys[n][0].name === 'executor' ?
+						keys[n][0](data, dataTree) :
+						text && (keys[n][1] ? text : escapeHtml(text));
 					text !== 'false' && text !== undefined && out.push(text);
 				}
 			}
@@ -130,20 +162,20 @@
 	}
 
 	function section(_this, func, key, negative) {
-		return function fastLoop(data) {
+		return function fastLoop(data, dataTree) {
 			var hasData = data[key] !== undefined;
 
 			if (_this.helpers[key]) { // helpers
-				return _this.helpers[key](data, func(data));
-			} else if (isArray(data)) { // array
+				return _this.helpers[key](data, func(data, dataTree));
+			} else if (isArray(data) && data.length) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
-					out.push(func(data[n]));
+					out.push(func(data[n], dataTree)); //.concat([data[n]])));
 				}
 				return out.join('');
 			} else if (negative && !hasData) { // not (^)
-				return func(data);
+				return func(data, dataTree);
 			} else if (!negative && hasData && data[key] !== false) { // data
-				return func(data);
+				return func(data, dataTree);
 			}
 		}
 	}
@@ -151,13 +183,15 @@
 	function sizzleTemplate(_this, html) {
 		var partCollector = [];
 		var output = [];
+		var sizzler = _this.sectionRegExp;
 		var parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
-				var part = $4.match('{{#') ?
+				var part = new RegExp(_this.options.tags[0] + '#').test($4) ?
 						section(_this, sizzleTemplate(_this, $4), $2) :
 						section(_this, variable(_this, $4), $2, $1 === '^');
 
-				partCollector.push(function collector(data) {
-					return part(typeof data[$2] === 'object' ? data[$2] : data);
+				partCollector.push(function collector(data, dataTree) {
+					return part(typeof data[$2] === 'object' ? data[$2] : data,
+						dataTree);
 				});
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
@@ -167,9 +201,9 @@
 			partCollector[n] && output.push(partCollector[n]);
 		}
 
-		return function executor(data) {
+		return function executor(data, dataTree) {
 			for (var n = 0, l = output.length, out = []; n < l; n++) {
-				out.push(output[n](data));
+				out.push(output[n](data, dataTree || [data]));
 			}
 			return out.join('');
 		}
