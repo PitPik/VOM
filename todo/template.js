@@ -34,7 +34,7 @@
 				fragment: document.createElement('div'),
 				appendCallback: _this.options.appendCallback,
 				timer: 0,
-				render: sizzleTemplate(_this, template) // pre-rendering
+				render: template && sizzleTemplate(_this, template)
 			};
 		},
 		entityMap = {
@@ -63,9 +63,9 @@
 		compile: function(template) {
 			this.template.render = sizzleTemplate(this, template);
 		},
-		template: function(data) {
-			return this.template.render(data);
-		},
+		// template: function(data) {
+		// 	return this.template.render(data);
+		// },
 		registerHelper: function(name, fn) {
 			this.helpers[name] = fn;
 		},
@@ -102,14 +102,12 @@
 	}
 
 	function switchTags(_this, tags) {
-		var isDefault = tags[0] === '{{';
-		var _tags = isDefault ? ['{{2,3}', '}{2,3}'] : tags;
+		var isDefault = tags[0] === '{{',
+			_tags = isDefault ? ['{{2,3}', '}{2,3}'] : tags;
 
 		_this.options.tags = tags; // or _tags??
-
 		_this.variableRegExp = new RegExp(
 			'(' + _tags[0] + ')([>!&=]\\s*)*([\\w<>%=\\s*]+)*' + _tags[1], 'g');
-
 		_this.sectionRegExp = new RegExp(
 			_tags[0] + '(#|\\^)(\\w*)\\s*(.*?)' + _tags[1] + '([\\S\\s]*?)' +
 			_tags[0] + '\\/\\2' + _tags[1], 'g');
@@ -131,10 +129,10 @@
 
 		html = html.replace(_this.variableRegExp,
 			function(all, $1, $2, $3) {
-				var isIgnore = $2 && ($2[0] === '!' || $2[0] === '=');
-				var isUnescape = !_this.options.doEscape ||
-						$1 === '{{{' || $2 && $2[0] === '&';
-				var isPartial = $2 && $2[0] === '>';
+				var isIgnore = $2 && ($2[0] === '!' || $2[0] === '='),
+					isUnescape = !_this.options.doEscape ||
+						$1 === '{{{' || $2 && $2[0] === '&',
+					isPartial = $2 && $2[0] === '>';
 
 				if (isIgnore) {
 					return '';
@@ -181,10 +179,10 @@
 	}
 
 	function sizzleTemplate(_this, html) {
-		var partCollector = [];
-		var output = [];
-		var sizzler = _this.sectionRegExp;
-		var parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
+		var partCollector = [],
+			output = [],
+			sizzler = _this.sectionRegExp,
+			parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
 				var part = new RegExp(_this.options.tags[0] + '#').test($4) ?
 						section(_this, sizzleTemplate(_this, $4), $2) :
 						section(_this, variable(_this, $4), $2, $1 === '^');
