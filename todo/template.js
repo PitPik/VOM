@@ -162,7 +162,7 @@
 			var hasData = data[key] !== undefined;
 
 			if (_this.helpers[key]) { // helpers
-				return _this.helpers[key](data, func(data, dataTree));
+				return _this.helpers[key](data, func(data, dataTree), dataTree);
 			} else if (isArray(data) && data.length) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
 					out.push(func(data[n], dataTree));
