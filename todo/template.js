@@ -63,9 +63,9 @@
 		compile: function(template) {
 			this.template.render = sizzleTemplate(this, template);
 		},
-		// template: function(data) {
-		// 	return this.template.render(data);
-		// },
+		template: function(data) {
+			return this.template.render(data);
+		},
 		registerHelper: function(name, fn) {
 			this.helpers[name] = fn;
 		},
@@ -114,9 +114,6 @@
 	}
 
 	function findData(data, dataTree, key) {
-		// if (data[key]) {
-		// 	return data[key];
-		// }
 		for (var n = dataTree.length; n--; ) {
 			if (dataTree[n][key] !== undefined) {
 				return dataTree[n][key];
@@ -147,9 +144,10 @@
 			for (var n = 0, l = html.length, out = [], text = ''; n < l; n++) {
 				out.push(html[n]);
 				if (keys[n] !== undefined) {
-					text = data[keys[n][0]] ||
+					text = data[keys[n][0]] !== undefined ? data[keys[n][0]] :
 						findData(data, dataTree, keys[n][0]); // walk up tree
-					text = keys[n][0].name === 'executor' ?
+					text = typeof text === 'function' ? text(data, dataTree) :
+						keys[n][0].name === 'executor' ?
 						keys[n][0](data, dataTree) :
 						text && (keys[n][1] ? text : escapeHtml(text));
 					text !== 'false' && text !== undefined && out.push(text);
@@ -167,7 +165,7 @@
 				return _this.helpers[key](data, func(data, dataTree));
 			} else if (isArray(data) && data.length) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
-					out.push(func(data[n], dataTree)); //.concat([data[n]])));
+					out.push(func(data[n], dataTree));
 				}
 				return out.join('');
 			} else if (negative && !hasData) { // not (^)
