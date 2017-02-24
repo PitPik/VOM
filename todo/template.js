@@ -114,17 +114,41 @@
 			_tags = isDefault ? ['{{2,3}', '}{2,3}'] : tags;
 
 		_this.options.tags = tags; // or _tags??
-		_this.variableRegExp = new RegExp(
-			'(' + _tags[0] + ')([>!&=]\\s*)*([\\w<>%=\\s*]+)*' + _tags[1], 'g');
+		_this.variableRegExp = new RegExp('(' + _tags[0] + ')' +
+			'([>!&=]\\s*)*([\\w<>%=\\.\\s*]+)*' + _tags[1], 'g');
 		_this.sectionRegExp = new RegExp(
 			_tags[0] + '(#|\\^)(\\w*)\\s*(.*?)' + _tags[1] + '([\\S\\s]*?)' +
 			_tags[0] + '\\/\\2' + _tags[1], 'g');
 	}
 
-	function findData(dataTree, key) {
+	function crawlObject(obj, keys) {
+		var parts = keys.split('.'),
+			key = '';
+
+		if (!parts[1]) {
+			return;
+		}
+		while ((key = parts.shift()) && (obj = obj[key]));
+		return obj;
+	}
+
+	function findData(data, dataTree, key) {
+		if (typeof key !== 'string') {
+			return;
+		}
+		var _data = crawlObject(data, key);
+
+		if (_data) {
+			return _data;
+		}
 		for (var n = dataTree.length; n--; ) {
 			if (dataTree[n][key] !== undefined) {
 				return dataTree[n][key];
+			} else { // TODO: make this more efficient
+				_data = crawlObject(dataTree[n], key);
+				if (_data) {
+					return _data;
+				}
 			}
 		}
 	}
@@ -154,7 +178,7 @@
 				out.push(html[n]);
 				if (keys[n] !== undefined) {
 					text = data[keys[n][0]] !== undefined ? data[keys[n][0]] :
-						findData(dataTree, keys[n][0]); // walk up the tree
+						findData(data, dataTree, keys[n][0]); // walk up tree
 					if (text === false) {
 						continue;
 					}
@@ -172,10 +196,11 @@
 
 	function section(_this, func, key, negative) {
 		return function fastLoop(data, dataTree) {
-			var hasData = data[key] !== undefined;
+			var _data = data[key] || findData(data, dataTree, key),
+				hasData = _data !== undefined;
 
-			if (hasData && typeof data[key] === 'function') { // functions
-				return data[key](data, func(data, dataTree), dataTree);
+			if (hasData && typeof _data === 'function') { // functions
+				return _data(data, func(data, dataTree), dataTree);
 			} else if (_this.helpers[key]) { // helpers
 				return _this.helpers[key](data, func(data, dataTree), dataTree);
 			} else if (isArray(data) && data.length) { // array
@@ -185,7 +210,7 @@
 				return out.join('');
 			} else if (negative && !hasData) { // not (^)
 				return func(data, dataTree);
-			} else if (!negative && hasData && data[key] !== false) { // data
+			} else if (!negative && hasData && _data !== false) { // data
 				return func(data, dataTree);
 			}
 		}
@@ -201,8 +226,9 @@
 						section(_this, variable(_this, $4), $2, $1 === '^');
 
 				partCollector.push(function collector(data, dataTree) {
-					return part(typeof data[$2] === 'object' ? data[$2] : data,
-						dataTree);
+					var _data = typeof data[$2] === 'object' ? data[$2] : data;
+
+					return part(_data || findData(data, dataTree, $2), dataTree);
 				});
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
