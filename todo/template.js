@@ -197,7 +197,7 @@
 	function section(_this, func, key, negative) {
 		return function fastLoop(data, dataTree) {
 			var _data = data[key] || findData(data, dataTree, key),
-				hasData = _data !== undefined;
+				hasData = _data; //  !== undefined
 
 			if (hasData && typeof _data === 'function') { // functions
 				return _data(data, func(data, dataTree), dataTree);
