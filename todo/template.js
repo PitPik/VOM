@@ -113,7 +113,7 @@
 			_tags[0] + '\\/\\2' + _tags[1], 'g');
 	}
 
-	function findData(data, dataTree, key) {
+	function findData(dataTree, key) {
 		for (var n = dataTree.length; n--; ) {
 			if (dataTree[n][key] !== undefined) {
 				return dataTree[n][key];
@@ -145,7 +145,7 @@
 				out.push(html[n]);
 				if (keys[n] !== undefined) {
 					text = data[keys[n][0]] !== undefined ? data[keys[n][0]] :
-						findData(data, dataTree, keys[n][0]); // walk up tree
+						findData(dataTree, keys[n][0]); // walk up the tree
 					if (text === false) {
 						continue;
 					}
