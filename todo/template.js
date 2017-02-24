@@ -26,7 +26,10 @@
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
+			// _this.variableRegExp = undefined;
+			// _this.sectionRegExp = undefined;
 			switchTags(_this, _this.options.tags);
+
 			_this.helpers =  _this.options.helpers;
 			_this.partials = _this.options.partials;
 			_this.template = {
@@ -57,7 +60,6 @@
 			appendCallback && Template.lazy(tmpl, function append() {
 				appendCallback(tmpl.docFragment);
 			});
-
 			return tmpl.docFragment.appendChild(tmpl.fragment.children[0]);
 		},
 		compile: function(template) {
@@ -134,9 +136,8 @@
 				if (isIgnore) {
 					return '';
 				}
-				keys.push(isPartial ?
-					[sizzleTemplate(_this, _this.partials[$3])] :
-					[$3, isUnescape]);
+				keys.push(!isPartial ? [$3, isUnescape] :
+					[sizzleTemplate(_this, _this.partials[$3])]);
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
 
