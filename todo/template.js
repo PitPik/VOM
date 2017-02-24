@@ -117,8 +117,8 @@
 		_this.variableRegExp = new RegExp('(' + _tags[0] + ')' +
 			'([>!&=]\\s*)*([\\w<>%=\\.\\s*]+)*' + _tags[1], 'g');
 		_this.sectionRegExp = new RegExp(
-			_tags[0] + '(#|\\^)(\\w*)\\s*(.*?)' + _tags[1] + '([\\S\\s]*?)' +
-			_tags[0] + '\\/\\2' + _tags[1], 'g');
+			_tags[0] + '(#|\\^)([\\w\\.]*)\\s*(.*?)' + _tags[1] +
+			'([\\S\\s]*?)' + _tags[0] + '\\/\\2' + _tags[1], 'g');
 	}
 
 	function crawlObject(obj, keys) {
