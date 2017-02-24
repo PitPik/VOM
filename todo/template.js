@@ -187,7 +187,7 @@
 						keys[n][0](data, dataTree) :
 						text && (keys[n][1] ? text :
 						escapeHtml(text, entityRegExp, entityMap));
-					text && out.push(text); //  !== undefined
+					text !== undefined && out.push(text);
 				}
 			}
 			return out.join('');
