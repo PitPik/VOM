@@ -146,11 +146,14 @@
 				if (keys[n] !== undefined) {
 					text = data[keys[n][0]] !== undefined ? data[keys[n][0]] :
 						findData(data, dataTree, keys[n][0]); // walk up tree
+					if (text === false) {
+						continue;
+					}
 					text = typeof text === 'function' ? text(data, dataTree) :
 						keys[n][0].name === 'executor' ?
 						keys[n][0](data, dataTree) :
 						text && (keys[n][1] ? text : escapeHtml(text));
-					text !== 'false' && text !== undefined && out.push(text);
+					text && out.push(text); //  !== undefined
 				}
 			}
 			return out.join('');
