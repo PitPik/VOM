@@ -18,7 +18,17 @@
 				helpers: {},
 				splitter: '|##|',
 				doEscape: true,
-				tags: ['{{', '}}']
+				tags: ['{{', '}}'],
+				entityMap: {
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					// "'": '&#39;',
+					// '/': '&#x2F;',
+					// '`': '&#x60;',
+					// '=': '&#x3D;'
+				}
 			};
 			init(this, options || {}, template);
 		},
@@ -28,6 +38,12 @@
 			}
 			// _this.variableRegExp = undefined;
 			// _this.sectionRegExp = undefined;
+			_this.entityRegExp = (function(entityMap, out){
+				for (var n in entityMap) {
+					out.push(n);
+				}
+				return new RegExp('[' + out.join('') + ']', 'g');
+			})(_this.options.entityMap, []);
 			switchTags(_this, _this.options.tags);
 
 			_this.helpers =  _this.options.helpers;
@@ -39,16 +55,6 @@
 				timer: 0,
 				render: template && sizzleTemplate(_this, template)
 			};
-		},
-		entityMap = {
-			'&': '&amp;',
-			'<': '&lt;',
-			'>': '&gt;',
-			'"': '&quot;',
-			"'": '&#39;',
-			'/': '&#x2F;',
-			'`': '&#x60;',
-			'=': '&#x3D;'
 		};
 
 	Template.prototype = {
@@ -92,8 +98,8 @@
 
 	return Template;
 
-	function escapeHtml(string) {
-		return String(string).replace(/[&<>"'`=\/]/g, function escape(char) {
+	function escapeHtml(string, entityRegExp, entityMap) {
+		return String(string).replace(entityRegExp, function escape(char) {
 			return entityMap[char];
 		});
 	}
@@ -124,7 +130,9 @@
 	}
 
 	function variable(_this, html) {
-		var keys = [];
+		var keys = [],
+			entityRegExp = _this.entityRegExp,
+			entityMap = _this.options.entityMap;
 
 		html = html.replace(_this.variableRegExp,
 			function(all, $1, $2, $3) {
@@ -153,7 +161,8 @@
 					text = typeof text === 'function' ? text(data, dataTree) :
 						keys[n][0].name === 'executor' ?
 						keys[n][0](data, dataTree) :
-						text && (keys[n][1] ? text : escapeHtml(text));
+						text && (keys[n][1] ? text :
+						escapeHtml(text, entityRegExp, entityMap));
 					text && out.push(text); //  !== undefined
 				}
 			}
