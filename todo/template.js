@@ -226,9 +226,8 @@
 						section(_this, variable(_this, $4), $2, $1 === '^');
 
 				partCollector.push(function collector(data, dataTree) {
-					var _data = typeof data[$2] === 'object' ? data[$2] : data;
-
-					return part(_data || findData(data, dataTree, $2), dataTree);
+					return part(typeof data[$2] === 'object' ? data[$2] : data,
+						dataTree);
 				});
 				return _this.options.splitter;
 			}).split(_this.options.splitter);
