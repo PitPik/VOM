@@ -1,4 +1,4 @@
-(function(window, undefined) {
+window.onload = function() {
 	'use strict';
 
 	// TODO: debounce(toggleAll, render..);
@@ -289,4 +289,4 @@
 		obj.timer = setTimeout(fn, 0);
 	}
 
-})(window);
+};

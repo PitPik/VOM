@@ -105,8 +105,7 @@
 	}
 
 	function isArray(obj) {
-		return Array.isArray && Array.isArray(obj) ||
-			Object.prototype.toString.call(obj) === "[object Array]";
+		return Array.isArray && Array.isArray(obj) || obj instanceof Array;
 	}
 
 	function switchTags(_this, tags) {
@@ -196,10 +195,9 @@
 
 	function section(_this, func, key, negative) {
 		return function fastLoop(data, dataTree) {
-			var _data = data[key] || findData(data, dataTree, key),
-				hasData = _data; //  !== undefined
+			var _data = data[key] || findData(data, dataTree, key);
 
-			if (hasData && typeof _data === 'function') { // functions
+			if (_data && typeof _data === 'function') { // functions
 				return _data(data, func(data, dataTree), dataTree);
 			} else if (_this.helpers[key]) { // helpers
 				return _this.helpers[key](data, func(data, dataTree), dataTree);
@@ -208,9 +206,9 @@
 					out.push(func(data[n], dataTree));
 				}
 				return out.join('');
-			} else if (negative && !hasData) { // not (^)
+			} else if (negative && !_data) { // not (^)
 				return func(data, dataTree);
-			} else if (!negative && hasData && _data !== false) { // data
+			} else if (!negative && _data && _data !== false) { // data
 				return func(data, dataTree);
 			}
 		}
