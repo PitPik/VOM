@@ -33,6 +33,8 @@
 			init(this, options || {}, template);
 		},
 		init = function(_this, options, template) {
+			var doc = window.document;
+
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
@@ -45,12 +47,11 @@
 				return new RegExp('[' + out.join('') + ']', 'g');
 			})(_this.options.entityMap, []);
 			switchTags(_this, _this.options.tags);
-
 			_this.helpers =  _this.options.helpers;
 			_this.partials = _this.options.partials;
 			_this.template = {
-				docFragment: document.createDocumentFragment(),
-				fragment: document.createElement('div'),
+				docFragment: doc && document.createDocumentFragment(),
+				fragment: doc && document.createElement('div'),
 				appendCallback: _this.options.appendCallback,
 				timer: 0,
 				render: template && sizzleTemplate(_this, template)
@@ -59,10 +60,14 @@
 
 	Template.prototype = {
 		render: function(data, appendCallback) {
-			var tmpl = this.template;
+			var tmpl = this.template,
+				html = tmpl.render(data);
 
+			if (!tmpl.docFragment) {
+				return html;
+			}
 			appendCallback = appendCallback || tmpl.appendCallback;
-			tmpl.fragment.innerHTML = tmpl.render(data);
+			tmpl.fragment.innerHTML = html;
 			appendCallback && Template.lazy(tmpl, function append() {
 				appendCallback(tmpl.docFragment);
 			});
