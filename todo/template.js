@@ -49,7 +49,7 @@
 			switchTags(_this, _this.options.tags);
 			_this.helpers =  _this.options.helpers;
 			_this.partials = _this.options.partials;
-			_this.template = {
+			_this.templateData = {
 				docFragment: doc && document.createDocumentFragment(),
 				fragment: doc && document.createElement('div'),
 				appendCallback: _this.options.appendCallback,
@@ -60,7 +60,7 @@
 
 	Template.prototype = {
 		render: function(data, appendCallback) {
-			var tmpl = this.template,
+			var tmpl = this.templateData,
 				html = tmpl.render(data);
 
 			if (!tmpl.docFragment) {
@@ -74,10 +74,10 @@
 			return tmpl.docFragment.appendChild(tmpl.fragment.children[0]);
 		},
 		compile: function(template) {
-			this.template.render = sizzleTemplate(this, template);
+			this.templateData.render = sizzleTemplate(this, template);
 		},
 		template: function(data) {
-			return this.template.render(data);
+			return this.templateData.render(data);
 		},
 		registerHelper: function(name, fn) {
 			this.helpers[name] = fn;
@@ -126,13 +126,12 @@
 	}
 
 	function crawlObject(obj, keys) {
-		var parts = keys.split('.'),
-			key = '';
+		var parts = keys.split('.');
 
 		if (!parts[1]) {
 			return;
 		}
-		while ((key = parts.shift()) && (obj = obj[key]));
+		while (obj = obj[parts.shift()]);
 		return obj;
 	}
 
