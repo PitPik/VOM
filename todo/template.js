@@ -126,12 +126,13 @@
 	}
 
 	function crawlObject(obj, keys) {
-		var parts = keys.split('.');
+		var parts = keys.split('.'),
+			key = '';
 
 		if (!parts[1]) {
 			return;
 		}
-		while (obj = obj[parts.shift()]);
+		while ((key = parts.shift()) && (obj = obj[key]));
 		return obj;
 	}
 
