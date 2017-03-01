@@ -17,6 +17,7 @@
 				idProperty: 'id',
 				setterCallback: function() {},
 				enrichModelCallback: function() {},
+				preChildrenCallback: function() {},
 				enhanceMap: [],
 				enhanceAll: false,
 				throwErrors: false
@@ -44,7 +45,13 @@
 		},
 		NODES = [], // node maps for fast access
 		idCounter = 0, // item id counter (if items have no own id)
-		strIndex = 'index';
+		strIndex = 'index',
+		crawlObject = function(data, keys) {
+			var n = 0;
+
+			while (n < keys.length && (data = data[keys[n++]]));
+			return data;
+		};
 
 	VOM.prototype = {
 		getElementById: function(id) {
@@ -53,11 +60,14 @@
 		getElementsByProperty: function(property, value) {
 			var result = [],
 				hasValue = undefined !== value,
-				hasProperty = undefined !== property;
+				hasProperty = undefined !== property,
+				keys = property.split('.'),
+				propValue = null;
 
 			for (var id in NODES[this.id]) {
-				if ((hasValue && NODES[this.id][id][property] === value) ||
-					(!hasValue && undefined !== NODES[this.id][id][property]) ||
+				propValue = crawlObject(NODES[this.id][id], keys);
+				if ((hasValue && propValue === value) ||
+					(!hasValue && undefined !== propValue) ||
 					(!hasValue && !hasProperty)) {
 						result.push(NODES[this.id][id]);
 				}
@@ -170,14 +180,14 @@
 
 			NODES[_this.id][item[idProperty]] = item; // push to flat index model
 			item.parentNode = parent || _this.model.root;
-			// recursion
-			item.childNodes && enrichModel(item.childNodes, _this, item);
 			item.index = 0; // will be reset on get()
-
 			if (isNew) {
 				item = enhanceModel(_this, item, hasOwnId);
 			}
 
+			_this.options.preChildrenCallback.call(_this, item);
+			// recursion
+			item.childNodes && enrichModel(item.childNodes, _this, item);
 			_this.options.enrichModelCallback.call(_this, item);
 		}
 

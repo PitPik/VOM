@@ -125,33 +125,30 @@
 			'([\\S\\s]*?)' + _tags[0] + '\\/\\2' + _tags[1], 'g');
 	}
 
-	function crawlObject(obj, keys) {
-		var parts = keys.split('.'),
-			key = '';
+	function crawlObject(data, keys) {
+		var n = 0;
 
-		if (!parts[1]) {
-			return;
-		}
-		while ((key = parts.shift()) && (obj = obj[key]));
-		return obj;
+		while (n < keys.length && (data = data[keys[n++]]));
+		return data;
 	}
 
 	function findData(data, dataTree, key) {
 		if (typeof key !== 'string') {
 			return;
 		}
-		var _data = crawlObject(data, key);
+		var keys = key.split('.'),
+			value = crawlObject(data, keys);
 
-		if (_data) {
-			return _data;
+		if (value !== undefined) {
+			return value;
 		}
 		for (var n = dataTree.length; n--; ) {
 			if (dataTree[n][key] !== undefined) {
 				return dataTree[n][key];
 			} else { // TODO: make this more efficient
-				_data = crawlObject(dataTree[n], key);
-				if (_data) {
-					return _data;
+				value = crawlObject(dataTree[n], keys);
+				if (value) {
+					return value;
 				}
 			}
 		}
