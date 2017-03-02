@@ -137,7 +137,8 @@
 			return;
 		}
 		var keys = key.split('.'),
-			value = crawlObject(data, keys);
+			value = data[key] !== undefined ? data[key] :
+				crawlObject(data, keys);
 
 		if (value !== undefined) {
 			return value;
