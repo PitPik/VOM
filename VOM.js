@@ -22,7 +22,7 @@
 				enhanceAll: false,
 				throwErrors: false
 			};
-			this.model = model || [];
+			this.model = model || [];
 
 			init(this, options || {});
 		},
@@ -65,7 +65,9 @@
 				propValue = null;
 
 			for (var id in NODES[this.id]) {
-				propValue = crawlObject(NODES[this.id][id], keys);
+				propValue = undefined !== NODES[this.id][id][property] ?
+					NODES[this.id][id][property] :
+					crawlObject(NODES[this.id][id], keys);
 				if ((hasValue && propValue === value) ||
 					(!hasValue && undefined !== propValue) ||
 					(!hasValue && !hasProperty)) {
@@ -124,7 +126,7 @@
 	};
 
 	function getChildNodes(item) { // adds array if necessary (appendChild)
-		item.childNodes = item.childNodes || [];
+		item.childNodes = item.childNodes || [];
 		return item.childNodes;
 	};
 
@@ -147,7 +149,7 @@
 
 	function removeChild(_this, item, preserve) {
 		!preserve && destroy(_this, [item]);
-		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
+		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
 	}
 
 	function parentCheck(_this, item, parent) {
