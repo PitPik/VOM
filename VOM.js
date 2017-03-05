@@ -17,7 +17,7 @@
 				idProperty: 'id',
 				setterCallback: function() {},
 				enrichModelCallback: function() {},
-				preChildrenCallback: function() {},
+				preRecursionCallback: function() {},
 				enhanceMap: [],
 				enhanceAll: false,
 				throwErrors: false
@@ -113,7 +113,7 @@
 	function destroy(_this, items) { // only cleans up NODES
 		for (var n = items.length; n--; ) {
 			if (items[n].childNodes) {
-				destroy(_this.options, items[n].childNodes);
+				destroy(_this, items[n].childNodes);
 			}
 			delete NODES[_this.id][items[n][_this.options.idProperty]];
 		}
@@ -187,7 +187,7 @@
 				item = enhanceModel(_this, item, hasOwnId);
 			}
 
-			_this.options.preChildrenCallback.call(_this, item);
+			_this.options.preRecursionCallback.call(_this, item);
 			// recursion
 			item.childNodes && enrichModel(item.childNodes, _this, item);
 			_this.options.enrichModelCallback.call(_this, item);
