@@ -196,14 +196,14 @@
 		};
 	}
 
-	function section(_this, func, key, negative) {
+	function section(_this, func, key, _key, negative) {
 		return function fastLoop(data, dataTree) {
 			var _data = data[key] || findData(data, dataTree, key);
 
 			if (_data && typeof _data === 'function') { // functions
 				return _data(data, func(data, dataTree), dataTree);
 			} else if (_this.helpers[key]) { // helpers
-				return _this.helpers[key](data, func(data, dataTree), dataTree);
+				return _this.helpers[key](data, _key, func(data, dataTree), dataTree);
 			} else if (isArray(data) && data.length) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
 					out.push(func(data[n], dataTree));
@@ -223,8 +223,8 @@
 			sizzler = _this.sectionRegExp,
 			parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
 				var part = new RegExp(_this.options.tags[0] + '#').test($4) ?
-						section(_this, sizzleTemplate(_this, $4), $2) :
-						section(_this, variable(_this, $4), $2, $1 === '^');
+						section(_this, sizzleTemplate(_this, $4), $2, $3) :
+						section(_this, variable(_this, $4), $2, $3, $1 === '^');
 
 				partCollector.push(function collector(data, dataTree) {
 					return part(typeof data[$2] === 'object' ? data[$2] : data,
