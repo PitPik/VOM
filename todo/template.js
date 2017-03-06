@@ -204,7 +204,7 @@
 				return _data(data, func(data, dataTree), dataTree);
 			} else if (_this.helpers[key]) { // helpers
 				return _this.helpers[key](data, _key, func(data, dataTree), dataTree);
-			} else if (isArray(data) && data.length) { // array
+			} else if (isArray(data) && data.length && !negative) { // array
 				for (var n = 0, l = data.length, out = []; n < l; n++) {
 					out.push(func(data[n], dataTree));
 				}
