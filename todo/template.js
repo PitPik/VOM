@@ -222,7 +222,7 @@
 			output = [],
 			sizzler = _this.sectionRegExp,
 			parts = html.replace(sizzler, function(all, $1, $2, $3, $4) {
-				var part = new RegExp(_this.options.tags[0] + '#').test($4) ?
+				var part = new RegExp(_this.options.tags[0] + '[#\^]').test($4) ?
 						section(_this, sizzleTemplate(_this, $4), $2, $3) :
 						section(_this, variable(_this, $4), $2, $3, $1 === '^');
 
