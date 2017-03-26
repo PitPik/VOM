@@ -228,9 +228,9 @@
 					wildcardPos > -1 ? lastMapIdx - wildcardPos + 1 : 1);
 				longItem = enhanceMap[item].join('.');
 				path = longItem.split('*')[1] || '';
+				pathArray = path.split('.').splice(1);
 
 				for (var _item in _model) {
-					pathArray = path.split('.').splice(1);
 					__model = !path ? _model : crawlObject(_model[_item], pathArray, 1);
 					_path = longItem.replace('*', _item);
 					__item = pathArray[pathArray.length - 1] || _item;
