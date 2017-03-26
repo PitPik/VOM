@@ -149,6 +149,9 @@ enrichModelCallback: function(item) {},
 // any rendering is involved...
 // NOTE: items don't get enriched if there is a propery parentNode present
 
+preRecursionCallback: function(item) {},
+// same as above but it will be called before the childNodes are processed.
+
 throwErrors: false
 // there are some checks in VOM that might call console.warn if something went wrong.
 // If throwErrors is set to true, there would be an error thrown instead of just a console.warn
