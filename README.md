@@ -1,7 +1,7 @@
 
 # VOM (Virtual Object Model)
 
-VOM is a tiny model controller (1.6KB). It can be used to either abstract element structure on a DOM page such as containers, widgets, form items, element groups, etc. to build complex apps or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
+VOM is a tiny model controller (1.53KB). It can be used to either abstract element structure on a DOM page such as containers, widgets, form items, element groups, etc. to build complex apps or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
 
 The strong point of VOM is that it automatically registers changes in its model and can react on that. It is aware of depth of the model, just like in a DOM structure (so it has children with an index and parents) and therefore can be used for complex structures such as menu trees, categorical structures or for example CMS items on a page. VOM provides an API similar to the DOM-API (appendChild, replaceChild, insertBefore, ...) so it is quite easy to understand and to learn.
 
@@ -29,7 +29,7 @@ The options are also optional as all possible options have a default value.
     id: 'id-01'
 }, ...]
 ```
-The model is an Array of Objects (can be seen as the children of a DOM's document.body) where each element could have ```childNodes``` defined. The childNodes would also be an array of further Objects (so called elements or items);
+The model is an Array of Objects (can be seen as the children of a DOM's document.body) where each element could have ```childNodes``` (optional name) defined. The childNodes would also be an array of further Objects;
 After initialisation of the model, it is then enriched with ```parentNode``` which points to its parent, ```id``` (or whatever ```options.idProperty``` is defining) that gives the element a unique id and ```index``` which is readable only and points to the index of the parent's childNodes (its own position compared to its siblings). In a real DOM there would not be an ```index```, only previousSibling, nextSibling... but I think it is clear what it does.
 
 ```javascript
@@ -40,7 +40,7 @@ After initialisation of the model, it is then enriched with ```parentNode``` whi
     parentNode: (...) // dynamic
 }, ...]
 ```
-```parentNode``` automatically has a property ```childNodes``` as it could otherwhise not hold this element.
+```parentNode``` automatically has a property ```childNodes``` (defined by ```options.childNodes```) as it could otherwhise not hold this element.
 
 A more complex model could look like this:
 ```javascript
@@ -93,20 +93,20 @@ A more complex model could look like this:
     }, ...]
 }, ...];
 ```
-This will end up in a model like:
+Combined with ```options.enhanceMap['text', 'isOpen']``` This will end up in a model like:
 ```javascript
 [{
-    text: 'Root item 0',
+    text: (...), // 'Root item 0',
     id: 0,
-    index: (...),
-    parentNode: (...),
+    index: (...), // 0
+    parentNode: (...), // Object
     someAttribute: 'foo',
-    isOpen: true,
+    isOpen: (...), // true,
     childNodes: [{
-        text: 'Item 0-0',
+        text: (...), // 'Item 0-0',
         id: 1,
-        index: (...),
-        parentNode: (...)
+        index: (...), // 0
+        parentNode: (...) // Object
     }, {...
 ```
 
@@ -137,9 +137,10 @@ setterCallback: function(property, item, value, oldValue) {},
 enhanceMap: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
 // setterCallback() when its value was changed
+// Wildcards '*' can be used in root or in more complex structures like foo.bar.*
 
-enhanceAll: false,
-// as described above (in enhanceMap), but this time for all properties in the model
+childNodes: 'childNodes',
+// Defines the key name given for child elements
 
 enrichModelCallback: function(item) {},
 // right after an element was enhanced this callback is called and provides its data (item / model)
@@ -208,11 +209,11 @@ destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
 ```
 
-'Enhancement' means that all properties that are defined in options.enhanceMap or all properies if options.enhanceAll is set, will be handled in setterCallback. It also means that the 'id' will be given automatically if not defined in the model and also be set to readonly, 'parentElement' will be set automatically and be handled in setterCallback and finally 'index' will be added to the model as a readonly property to determine the position of the element compared to its siblings.
+'Enhancement' means that all properties that are defined in ```options.enhanceMap``` will be handled in setterCallback. It also means that the ```id``` will be given automatically if not defined in the model and also be set to readonly, ```parentElement``` will be set automatically and be handled in ```setterCallback``` and finally ```index``` will be added to the model to determine the position of the element compared to its siblings.
 
-'childNodes' doesn't have to be set initially if there are no child nodes, but it will be set automatically if methods like appendChild() or prependChild() were called and there were no previous child nodes present in its parent.
+```childNodes``` doesn't have to be set initially if there are no child nodes, but it will be set automatically if methods like ```appendChild()``` or ```prependChild()``` were called and there were no previous child nodes present in its parent.
 
-All methods are scoped with the instance: this === instance_of_VOM
+All methods are scoped with the instance: ```this``` === instance_of_VOM
 
 ##Little example
 ```javascript

@@ -19,7 +19,7 @@
 				enrichModelCallback: function() {},
 				preRecursionCallback: function() {},
 				enhanceMap: [],
-				enhanceAll: false,
+				childNodes: 'childNodes',
 				throwErrors: false
 			};
 			this.model = model || [];
@@ -28,7 +28,7 @@
 		},
 		init = function(_this, options) {
 			var item = '',
-				map = [];
+				rootItem = {};
 
 			NODES.push({}); // new access map for current instance
 			reinforceProperty(_this, 'id', NODES.length - 1);
@@ -36,20 +36,22 @@
 			for (var option in options) { // extend options
 				_this.options[option] = options[option];
 			}
-			map = _this.options.enhanceMap;
-			while (item = map.shift()) {
-				map[item] = true; // for faster lookup table than array
+			while (item = _this.options.enhanceMap.shift()) {
+				item = item.split('.');
+				_this.options.enhanceMap[item[0]] = item;
 			}
-			reinforceProperty(_this.model, 'root', {childNodes: _this.model});
+			rootItem[_this.options.childNodes] = _this.model;
+			reinforceProperty(_this.model, 'root', rootItem);
 			enrichModel(_this.model, _this);
 		},
 		NODES = [], // node maps for fast access
 		idCounter = 0, // item id counter (if items have no own id)
 		strIndex = 'index',
-		crawlObject = function(data, keys) {
-			var n = 0;
+		crawlObject = function(data, keys, min) {
+			var n = 0,
+				length = keys.length - (min || 0);
 
-			while (n < keys.length && (data = data[keys[n++]]));
+			while (n < length && (data = data[keys[n++]]) !== undefined);
 			return data;
 		};
 
@@ -61,13 +63,14 @@
 			var result = [],
 				hasValue = undefined !== value,
 				hasProperty = undefined !== property,
-				keys = property.split('.'),
+				keys = [],
 				propValue = null;
 
 			for (var id in NODES[this.id]) {
 				propValue = undefined !== NODES[this.id][id][property] ?
 					NODES[this.id][id][property] :
-					crawlObject(NODES[this.id][id], keys);
+					crawlObject(NODES[this.id][id], (keys[0] ?
+						keys : (keys = hasProperty && property.split('.'))));
 				if ((hasValue && propValue === value) ||
 					(!hasValue && undefined !== propValue) ||
 					(!hasValue && !hasProperty)) {
@@ -84,7 +87,8 @@
 		},
 		appendChild: function(item, parent) {
 			parent = parent || this.model.root;
-			return moveItem(this, item, parent, getChildNodes(parent).length);
+			return moveItem(this, item, parent,
+				getChildNodes(parent, _his.options.childNodes).length);
 		},
 		prependChild: function(item, parent) {
 			return moveItem(this, item, parent || this.model.root, 0);
@@ -103,6 +107,9 @@
 			return item;
 		},
 		reinforceProperty: reinforceProperty,
+		// getCleanModel: function() {
+		// 	return JSON.parse(JSON.stringify(this.model));
+		// },
 		destroy: function() {
 			return destroy(this, this.model);
 		}
@@ -112,8 +119,8 @@
 
 	function destroy(_this, items) { // only cleans up NODES
 		for (var n = items.length; n--; ) {
-			if (items[n].childNodes) {
-				destroy(_this, items[n].childNodes);
+			if (items[n][_this.options.childNodes]) {
+				destroy(_this, items[n][_this.options.childNodes]);
 			}
 			delete NODES[_this.id][items[n][_this.options.idProperty]];
 		}
@@ -121,13 +128,13 @@
 	};
 
 	function indexOf(_this, item) {
-		return (item.parentNode ? getChildNodes(item.parentNode) : _this.model)
-			.indexOf(item);
+		return (item.parentNode ? getChildNodes(item.parentNode,
+			_this.options.childNodes) : _this.model).indexOf(item);
 	};
 
-	function getChildNodes(item) { // adds array if necessary (appendChild)
-		item.childNodes = item.childNodes || [];
-		return item.childNodes;
+	function getChildNodes(item, childNodes) { // adds array if necessary (appendChild)
+		item[childNodes] = item[childNodes] || [];
+		return item[childNodes];
 	};
 
 	function moveItem(_this, item, parent, index) {
@@ -142,14 +149,15 @@
 		}
 		item = item.index !== -1 && item.parentNode &&
 			removeChild(_this, item, true) || item;
-		getChildNodes(parent).splice(index || 0, 0, item);
+		getChildNodes(parent, _this.options.childNodes).splice(index || 0, 0, item);
 		item.parentNode = parent;
 		return item;
 	};
 
 	function removeChild(_this, item, preserve) {
 		!preserve && destroy(_this, [item]);
-		return getChildNodes(item.parentNode).splice(item.index, 1)[0] || item; // if new
+		return getChildNodes(item.parentNode, _this.options.childNodes)
+			.splice(item.index, 1)[0] || item; // if new
 	}
 
 	function parentCheck(_this, item, parent) {
@@ -189,27 +197,42 @@
 
 			_this.options.preRecursionCallback.call(_this, item);
 			// recursion
-			item.childNodes && enrichModel(item.childNodes, _this, item);
+			item[_this.options.childNodes] &&
+				enrichModel(item[_this.options.childNodes], _this, item);
 			_this.options.enrichModelCallback.call(_this, item);
 		}
 
 		return model;
 	}
 
-	function enhanceModel(_this, model, ownProperty) {
+	function enhanceModel(_this, model, ownProperty, longItem, lastItem, all) {
 		var cache = {}, // getter / setter value cache
-			internalProperty = false;
+			internalProperty = false,
+			enhanceMap = _this.options.enhanceMap,
+			length = 0,
+			last = '';
 
 		for (var item in model) {
+			length = enhanceMap[item] && enhanceMap[item].length;
+			if (length > 1) {
+				last = enhanceMap[item][length - 1];
+				enhanceModel(_this, crawlObject(model, enhanceMap[item], 1), null,
+					enhanceMap[item].join('.').replace('*', item), last, last === '*');
+				continue;
+			}
+			if (all) {
+				lastItem = item;
+				longItem = longItem.split('.');
+				longItem[longItem.length - 1] = item;
+				longItem = longItem.join('.');
+			}
 			internalProperty = item === 'parentNode' || item === strIndex;
-
 			if (item === _this.options.idProperty) {
 				reinforceProperty(model, item, model[item], ownProperty);
-			} else if (_this.options.enhanceAll || _this.options.enhanceMap[item] ||
-					internalProperty) { // 'childNodes'
-				cache[item] = model[item];
-
-				defineProperty(item, model, cache, _this, strIndex, !internalProperty);
+			} else if (enhanceMap[item] || enhanceMap['*'] || internalProperty ||
+					longItem && item === lastItem) {
+				cache[longItem || item] = model[lastItem || item];
+				defineProperty(item, model, cache, _this, strIndex, !internalProperty, longItem);
 			}
 		}
 
@@ -226,16 +249,17 @@
 		});
 	}
 
-	function defineProperty(property, object, cache, _this, strIndex, enumerable) {
+	function defineProperty(property, object, cache, _this, strIndex, enumerable, longItem) {
 		return Object.defineProperty(object, property, {
 			get: function() {
-				return property === strIndex ? indexOf(_this, object) : cache[property];
+				return property === strIndex ?
+					indexOf(_this, object) : cache[longItem || property];
 			},
 			set: function(value) {
-				var  oldValue = cache[property];
+				var  oldValue = cache[longItem || property];
 
-				cache[property] = value;
-				validate(property, object, value, oldValue, cache, _this, strIndex);
+				cache[longItem || property] = value;
+				validate(longItem || property, object, value, oldValue, cache, _this, strIndex);
 			},
 			enumerable: enumerable
 		});

@@ -61,12 +61,13 @@
 	Template.prototype = {
 		render: function(data, appendCallback) {
 			var tmpl = this.templateData,
-				html = tmpl.render(data);
+				html = tmpl.render && tmpl.render(data);
 
-			if (!tmpl.docFragment) {
+			appendCallback = appendCallback || tmpl.appendCallback;
+			if (!tmpl.docFragment || !html) {
+				appendCallback && appendCallback();
 				return html;
 			}
-			appendCallback = appendCallback || tmpl.appendCallback;
 			tmpl.fragment.innerHTML = html;
 			appendCallback && Template.lazy(tmpl, function append() {
 				appendCallback(tmpl.docFragment);
@@ -128,7 +129,7 @@
 	function crawlObject(data, keys) {
 		var n = 0;
 
-		while (n < keys.length && (data = data[keys[n++]]));
+		while (n < keys.length && (data = data[keys[n++]]) !== undefined);
 		return data;
 	}
 
