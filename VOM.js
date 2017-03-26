@@ -205,34 +205,47 @@
 		return model;
 	}
 
-	function enhanceModel(_this, model, ownProperty, longItem, lastItem, all) {
+	function enhanceModel(_this, model, ownProperty) {
 		var cache = {}, // getter / setter value cache
 			internalProperty = false,
 			enhanceMap = _this.options.enhanceMap,
-			length = 0,
-			last = '';
+
+			lastMapIdx = 0,
+			wildcardPos = 0,
+			path = '',
+			_path = '',
+			__item = '',
+			longItem = '',
+			_model = {},
+			__model = {},
+			pathArray = [];
 
 		for (var item in model) {
-			length = enhanceMap[item] && enhanceMap[item].length;
-			if (length > 1) {
-				last = enhanceMap[item][length - 1];
-				enhanceModel(_this, crawlObject(model, enhanceMap[item], 1), null,
-					enhanceMap[item].join('.').replace('*', item), last, last === '*');
+			lastMapIdx = enhanceMap[item] && enhanceMap[item].length - 1;
+			if (lastMapIdx) { // loop inside deep
+				wildcardPos = enhanceMap[item].indexOf('*');
+				_model = crawlObject(model, enhanceMap[item],
+					wildcardPos > -1 ? lastMapIdx - wildcardPos + 1 : 1);
+				longItem = enhanceMap[item].join('.');
+				path = longItem.split('*')[1] || '';
+
+				for (var _item in _model) {
+					pathArray = path.split('.').splice(1);
+					__model = !path ? _model : crawlObject(_model[_item], pathArray, 1);
+					_path = longItem.replace('*', _item);
+					__item = pathArray[pathArray.length - 1] || _item;
+					cache[_path] = __model[__item];
+					defineProperty(__item, __model, cache, _this, strIndex, null, _path);
+				}
 				continue;
-			}
-			if (all) {
-				lastItem = item;
-				longItem = longItem.split('.');
-				longItem[longItem.length - 1] = item;
-				longItem = longItem.join('.');
 			}
 			internalProperty = item === 'parentNode' || item === strIndex;
 			if (item === _this.options.idProperty) {
 				reinforceProperty(model, item, model[item], ownProperty);
-			} else if (enhanceMap[item] || enhanceMap['*'] || internalProperty ||
-					longItem && item === lastItem) {
-				cache[longItem || item] = model[lastItem || item];
-				defineProperty(item, model, cache, _this, strIndex, !internalProperty, longItem);
+			} else if (enhanceMap[item] || enhanceMap['*'] &&
+					enhanceMap.length === 1 || internalProperty) {
+				cache[item] = model[item];
+				defineProperty(item, model, cache, _this, strIndex, !internalProperty);
 			}
 		}
 

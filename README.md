@@ -137,7 +137,7 @@ setterCallback: function(property, item, value, oldValue) {},
 enhanceMap: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
 // setterCallback() when its value was changed
-// Wildcards '*' can be used in root or in more complex structures like foo.bar.*
+// Wildcards '*' can be used in root or in more complex structures like foo.bar.* or foo.*.value
 
 childNodes: 'childNodes',
 // Defines the key name given for child elements
