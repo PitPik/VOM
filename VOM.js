@@ -107,6 +107,11 @@
 			return item;
 		},
 		reinforceProperty: reinforceProperty,
+		addProperty(property, item, path, readonly) {
+			var cache = {};
+			cache[path || property] = item[property];
+			defineProperty(property, item, cache, this, strIndex, !readonly, path);
+		},
 		// getCleanModel: function() {
 		// 	return JSON.parse(JSON.stringify(this.model));
 		// },
@@ -206,8 +211,7 @@
 	}
 
 	function enhanceModel(_this, model, ownProperty) {
-		var cache = {}, // getter / setter value cache
-			internalProperty = false,
+		var internalProperty = false,
 			enhanceMap = _this.options.enhanceMap,
 
 			lastMapIdx = 0,
@@ -234,8 +238,7 @@
 					__model = !path ? _model : crawlObject(_model[_item], pathArray, 1);
 					_path = longItem.replace('*', _item);
 					__item = pathArray[pathArray.length - 1] || _item;
-					cache[_path] = __model[__item];
-					defineProperty(__item, __model, cache, _this, strIndex, null, _path);
+					_this.addProperty(__item, __model, _path);
 				}
 				continue;
 			}
@@ -244,8 +247,7 @@
 				reinforceProperty(model, item, model[item], ownProperty);
 			} else if (enhanceMap[item] || enhanceMap['*'] &&
 					enhanceMap.length === 1 || internalProperty) {
-				cache[item] = model[item];
-				defineProperty(item, model, cache, _this, strIndex, !internalProperty);
+				_this.addProperty(item, model, null, internalProperty);
 			}
 		}
 

@@ -209,6 +209,10 @@ reinforceProperty(model, item, value, [enumarable]) //
 // convenient for storing items that don't belong to the model. JSON.strigify 
 // can then better deal with the model...
 
+addProperty(property, item, path, readonly)
+// Adds a property to a model item. Whole path is needed to determine the property (foo.bar)
+// if it is not in the root of the item.
+
 destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
 ```
