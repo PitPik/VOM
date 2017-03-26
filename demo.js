@@ -2,7 +2,16 @@
 	'use strict';
 
 	// ---------- INIT (get data from storage or create new model)
-	let data = JSON.parse(storage('demo', 'demo_01', 'model') || '[]');
+	let STORAGE_KEY = 'vom-demo',
+		myStorage = {
+			fetch: function () {
+				return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+			},
+			save: function (todos) {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+			}
+		},
+		data = myStorage.fetch();
 
 	if (!data.length) {
 		data = [{ // create new item if none in storage
@@ -33,7 +42,7 @@
 					}
 					break;
 			}
-			persist(demo.model, property, object, value, oldValue); // save state of model
+			myStorage.save(demo.model, property, object, value, oldValue); // save state of model
 		},
 		enrichModelCallback: function(object) {
 			// store newly created element as reference in model for easy access later on
@@ -71,33 +80,4 @@
 	function removeButton(element) {
 		element.parentNode.removeChild(element);
 	}
-
-
-
-
-
-	// ---------- Helper-function for storage
-	function storage(scope, component, type, value) {
-		let data = localStorage.getItem(scope + '.' + component),
-			items = JSON.parse(data || '{}');
-
-		if (undefined !== value) {
-			if (null !== value) { // set
-				items[type] = value;
-			} else { // delete
-				delete items[type];
-			}
-
-			localStorage.setItem(scope + '.' + component, JSON.stringify(items));
-		} else if (type) { // return value
-			return items[type];
-		} else { // return all
-			return items;
-		}
-	}
-
-	function persist(data) {
-		return storage('demo', 'demo_01', 'model', JSON.stringify(data));
-	}
-
 })(this);
