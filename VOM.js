@@ -88,7 +88,7 @@
 		appendChild: function(item, parent) {
 			parent = parent || this.model.root;
 			return moveItem(this, item, parent,
-				getChildNodes(parent, _his.options.childNodes).length);
+				getChildNodes(parent, this.options.childNodes).length);
 		},
 		prependChild: function(item, parent) {
 			return moveItem(this, item, parent || this.model.root, 0);
