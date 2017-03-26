@@ -21,7 +21,7 @@ VOM doesn't provide a rendering engine but makes it easy to delegate to such. Se
 A model may be passed (Array) but can also be left out (or null) as elements can be added after initialisation.
 The options are also optional as all possible options have a default value.
 
-##Model
+## Model
 
 ```javascript
 [{
@@ -110,7 +110,7 @@ Combined with ```options.enhanceMap['text', 'isOpen']``` This will end up in a m
     }, {...
 ```
 
-##Options
+## Options
 On initialisation you can add some options. All predefinitions are shown as followed.
 
 ```javascript
@@ -157,7 +157,7 @@ throwErrors: false
 // If throwErrors is set to true, there would be an error thrown instead of just a console.warn
 ```
 
-##API
+## API
 
 ```javascript
 getElementById(id); // id: String
@@ -218,7 +218,7 @@ destroy()
 
 All methods are scoped with the instance: ```this``` === instance_of_VOM
 
-##Little example
+## Little example
 ```javascript
 var model = [{
     foo: 'bar'
@@ -236,26 +236,26 @@ var vom = new VOM(model, {
 vom.model[0].foo = 'new bar' // console: 'foo' was changed from 'bar' to 'new bar'
 ```
 
-##Missing properties
+## Missing properties
 
 There are some properties like ```previousSibling```, etc... missing that exist in a real DOM environment. Those are actually not necessary as it is quite easy to find elements in the model:
 
-###previousSibling
+### previousSibling
 ```javascript
 var previousSibling = item.parentNode.childNodes[item.index - 1];
 ```
 
-###nextSibling
+### nextSibling
 ```javascript
 var nextSibling = item.parentNode.childNodes[item.index + 1];
 ```
 
-###firstChild
+### firstChild
 ```javascript
 var firstChild = item.childNodes[0];
 ```
 
-###lastChild
+### lastChild
 ```javascript
 var lastChild = item.childNodes[item.childNodes.length - 1];
 ```
