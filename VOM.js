@@ -107,7 +107,7 @@
 			return item;
 		},
 		reinforceProperty: reinforceProperty,
-		addProperty(property, item, path, readonly) {
+		addProperty: function(property, item, path, readonly) {
 			var cache = {};
 			cache[path || property] = item[property];
 			defineProperty(property, item, cache, this, strIndex, !readonly, path);
