@@ -11,22 +11,48 @@
 				localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 			}
 		},
-		data = myStorage.fetch();
+		data = []; //myStorage.fetch();
 
 	if (!data.length) {
 		data = [{ // create new item if none in storage
 			clicks: 0,
-			maxClicks: 10
+			maxClicks: 10,
+			foo: {
+				foo: true,
+				bar: false,
+				bars: false,
+				value: 'some value'
+			},
+			preferences: {
+				foo: {
+					value: 'foo'
+				},
+				bar: {
+					value: 'bar'
+				}
+			},
+			uaua: {
+				foo: {
+					value: {
+						val: 'foo'
+					}
+				},
+				bar: {
+					value: {
+						val: 'bar'
+					}
+				}
+			}
 		}];
 	}
 
 	// ---------- CREATE MODEL (instance)
 	const demo = window.demo = new VOM(data, { // options
-		enhanceMap: ['clicks'], // what should we listen to in setterCallback...
+		enhanceMap: ['clicks', 'foo.*', 'preferences.*.value', 'uaua.*.value.val'], // what should we listen to in setterCallback...
 		// Model callbacks should only call VIEW functions (passing data)
 		// and data storage (sync to server... might also reflect in view).
 		// return true means that new value is not excepted and therefore reset.
-		setterCallback: (property, object, value, oldValue) => {
+		setterCallback: (property, object, value, oldValue) => {console.log(property)
 			switch (property) {
 				case 'parentNode': // standard callback
 					break;

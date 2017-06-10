@@ -18,6 +18,7 @@
 				setterCallback: function() {},
 				enrichModelCallback: function() {},
 				preRecursionCallback: function() {},
+				moveCallback: function() {},
 				enhanceMap: [],
 				childNodes: 'childNodes',
 				throwErrors: false
@@ -47,13 +48,13 @@
 		NODES = [], // node maps for fast access
 		idCounter = 0, // item id counter (if items have no own id)
 		strIndex = 'index',
-		crawlObject = function(data, keys, min) {
-			var n = 0,
-				length = keys.length - (min || 0);
-
-			while (n < length && (data = data[keys[n++]]) !== undefined);
+		crawlObject = function(data, keys, min) { // faster than while
+			for (var n = 0, m = keys.length - (min || 0); n < m; n++) {
+				data = data && data[keys[n]];
+			}
 			return data;
 		};
+
 
 	VOM.prototype = {
 		getElementById: function(id) {
@@ -79,31 +80,31 @@
 			}
 			return result;
 		},
-		insertBefore: function(item, sibling) {
-			return moveItem(this, item, sibling.parentNode, sibling.index);
-		},
-		insertAfter: function(item, sibling) {
-			return moveItem(this, item, sibling.parentNode, sibling.index + 1);
-		},
 		appendChild: function(item, parent) {
 			parent = parent || this.model.root;
 			return moveItem(this, item, parent,
-				getChildNodes(parent, this.options.childNodes).length);
+				getChildNodes(parent, this.options.childNodes).length, 'appendChild', parent);
 		},
 		prependChild: function(item, parent) {
-			return moveItem(this, item, parent || this.model.root, 0);
+			return moveItem(this, item, parent || this.model.root, 0, 'prependChild', parent);
+		},
+		insertBefore: function(item, sibling) {
+			return moveItem(this, item, sibling.parentNode, sibling.index, 'insertBefore', sibling);
+		},
+		insertAfter: function(item, sibling) {
+			return moveItem(this, item, sibling.parentNode, sibling.index + 1, 'insertAfter', sibling);
 		},
 		replaceChild: function(newItem, item) {
 			var index = item.index,
 				parentNode = item.parentNode;
 
 			removeChild(this, item);
-			moveItem(this, newItem, parentNode, index);
+			moveItem(this, newItem, parentNode, index, 'replaceChild', item);
 			return item;
 		},
 		removeChild: function(item) {
 			removeChild(this, item);
-			this.options.setterCallback.call(this, 'removeChild', item);
+			this.options.setterCallback.call(this, 'removeChild', item); // order of arguments
 			return item;
 		},
 		reinforceProperty: reinforceProperty,
@@ -112,15 +113,15 @@
 			cache[path || property] = item[property];
 			defineProperty(property, item, cache, this, strIndex, !readonly, path);
 		},
-		// getCleanModel: function() {
-		// 	return JSON.parse(JSON.stringify(this.model));
-		// },
+		getCleanModel: function() { // maybe not...
+			return JSON.parse(JSON.stringify(this.model));
+		},
 		destroy: function() {
 			return destroy(this, this.model);
 		}
 	};
 
-	/* ------------- module functions  -------------- */
+	return VOM;
 
 	function destroy(_this, items) { // only cleans up NODES
 		for (var n = items.length; n--; ) {
@@ -142,12 +143,16 @@
 		return item[childNodes];
 	};
 
-	function moveItem(_this, item, parent, index) {
+	function moveItem(_this, item, parent, index, type, sibling) {
+		_this.options.moveCallback.call(_this, item, type, sibling);
 		if (!item.parentNode) { // for convenience: append un-enhenced new items
-			enrichModel([item], _this, parent);
+			enrichModel([item], _this, parent, type, sibling);
 		} else if (_this.options.parentCheck) {
 			parentCheck(_this, item, parent);
 		} // TODO: add more checks if allowed...
+
+		_this.type = type;
+		_this.sibling = sibling;
 
 		if(item.parentNode === parent && index > item.index && item.index !== -1) {
 			index--;
@@ -178,7 +183,7 @@
 		}
 	};
 
-	function enrichModel(model, _this, parent) {
+	function enrichModel(model, _this, parent, type, sibling) {
 		var options = _this.options,
 			isNew = false,
 			hasOwnId = true,
@@ -189,7 +194,7 @@
 			isNew = !item.parentNode;
 
 			if (!item[idProperty]) {
-				item[idProperty] = idCounter++;
+				item[idProperty] = 'vom_' + idCounter++;
 				hasOwnId = false;
 			}
 
@@ -200,11 +205,11 @@
 				item = enhanceModel(_this, item, hasOwnId);
 			}
 
-			_this.options.preRecursionCallback.call(_this, item);
+			_this.options.preRecursionCallback.call(_this, item, type, sibling);
 			// recursion
 			item[_this.options.childNodes] &&
-				enrichModel(item[_this.options.childNodes], _this, item);
-			_this.options.enrichModelCallback.call(_this, item);
+				enrichModel(item[_this.options.childNodes], _this, item); // , type, sibling
+			_this.options.enrichModelCallback.call(_this, item, type, sibling);
 		}
 
 		return model;
@@ -281,12 +286,16 @@
 	}
 
 	function validate(property, object, value, oldValue, cache, _this, strIndex) {
+
 		if (property === _this.options.idProperty || property === strIndex ||
-			_this.options.setterCallback.call(_this, property, object, value, oldValue)) {
+			_this.options.setterCallback.call(_this, _this.type ||
+					property, object, value, oldValue, _this.sibling)) {
 				cache[property] = oldValue; // return value if not allowed
 				error('ERROR: Cannot set property \'' + property + '\' to \'' +
 					value + '\'', _this.options);
 		}
+		delete _this.type;
+		delete _this.sibling;
 	}
 
 	function error(txt, options) {
@@ -296,6 +305,4 @@
 
 		throw txt;
 	}
-
-	return VOM;
 }));
