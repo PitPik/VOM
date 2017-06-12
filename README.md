@@ -124,11 +124,13 @@ idProperty: 'id',
 setterCallback: function(property, item, value, oldValue) {},
 // This is actually the key callback that makes VOM so valuable and convenient to be used.
 // All properties in the model that have been enhanced by being defined in options.enhanceMap,
-// through options.enhanceAll or defined by its reserved key word 'parentNode', if changed, will
-// trigger this callback to be called. removeChild() also triggers the setterCallback.
-// property could be parentNode (on all manipulation methods like appendChild, ...) or removeChild
-// or the key from options.enhanceMap. In case options.enhanceAll is set to true, all properties in
-// the model being changed in the model would trigger this function and deliver its name in property.
+// through options.enhanceAll and methods called to manipulate the order in the model (like
+// appendChild, replaceChild, ...) if changed, will trigger this callback to be called.
+// removeChild() also triggers the setterCallback.
+// 'property' will deliver the property that was changed and defined in options.enhanceMap or the 
+// method called to manipulate the model. In case options.enhanceAll is set to true,
+// all properties in the model being changed in the model would trigger this function and
+// deliver its name in property.
 // item is the model part being modified, so value could also be taken from item[property].
 // oldValue is the value of item[property] before it was manipulated. So, in case there was an invalide
 // value set, you can react on it with either setting it back to old value or returning true, which also
