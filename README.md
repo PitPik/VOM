@@ -127,7 +127,7 @@ subscribe: function(property, item, value, oldValue) {},
 // through options.enhanceAll and methods called to manipulate the order in the model (like
 // appendChild, replaceChild, ...) if changed, will trigger this callback to be called.
 // removeChild() also triggers the subscribe.
-// 'property' will deliver the property that was changed and defined in options.listeners or the 
+// 'property' will deliver the property that was changed and defined in options.listeners or the
 // method called to manipulate the model. In case options.enhanceAll is set to true,
 // all properties in the model being changed in the model would trigger this function and
 // deliver its name in property.
@@ -139,7 +139,8 @@ subscribe: function(property, item, value, oldValue) {},
 listeners: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
 // subscribe() when its value was changed
-// Wildcards '*' can be used in root or in more complex structures like foo.bar.* or foo.*.value
+// Wildcards '*' can be used in root or in more complex structures like foo.bar.* or foo.*.value,
+// where foo could also be an array. So, ```{ foo: [{value: 1}, {value : 2 }] }```
 
 childNodes: 'childNodes',
 // Defines the key name given for child elements
@@ -211,12 +212,16 @@ removeChild(item); // item: model element (Object)
 
 reinforceProperty(model, item, value, [enumarable]) //
 // sets a property as enumerable: false or as set, configurable: false, writable: false.
-// convenient for storing items that don't belong to the model. JSON.strigify 
+// convenient for storing items that don't belong to the model. JSON.strigify
 // can then better deal with the model...
 
 addProperty(property, item, path, readonly)
 // Adds a property to a model item. Whole path is needed to determine the property (foo.bar)
 // if it is not in the root of the item.
+
+getProperty()
+sortChildren(callback, model, children)
+getCleanModel()
 
 destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
