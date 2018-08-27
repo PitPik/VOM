@@ -1,7 +1,7 @@
 
 # VOM (Virtual Object Model)
 
-VOM is a tiny model controller (1.53KB). It can be used to either abstract element structure on a DOM page such as containers, widgets, form items, element groups, etc. to build complex apps or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
+VOM is a tiny model controller (4.7KB). It can be used to either abstract element structure on a DOM page such as containers, widgets, form items, element groups, etc. to build complex apps or to just simply create a flat model and keep track of changes in this model and reflect them for example in a view.
 
 The strong point of VOM is that it automatically registers changes in its model and can react on that. It is aware of depth of the model, just like in a DOM structure (so it has children with an index and parents) and therefore can be used for complex structures such as menu trees, categorical structures or for example CMS items on a page. VOM provides an API similar to the DOM-API (appendChild, replaceChild, insertBefore, ...) so it is quite easy to understand and to learn.
 
@@ -121,7 +121,7 @@ parentCheck: false,
 idProperty: 'id',
 // the key of how the id should be stored in the model ('uuid', ...)
 
-setterCallback: function(property, item, value, oldValue) {},
+subscribe: function(property, item, value, oldValue) {},
 // This is actually the key callback that makes VOM so valuable and convenient to be used.
 // All properties in the model that have been enhanced by being defined in options.enhanceMap,
 // through options.enhanceAll and methods called to manipulate the order in the model (like
@@ -136,7 +136,7 @@ setterCallback: function(property, item, value, oldValue) {},
 // value set, you can react on it with either setting it back to old value or returning true, which also
 // sets the value back and console.logs a message.
 
-enhanceMap: [],
+listeners: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
 // setterCallback() when its value was changed
 // Wildcards '*' can be used in root or in more complex structures like foo.bar.* or foo.*.value
@@ -150,6 +150,9 @@ enrichModelCallback: function(item) {},
 // DOM element for future convenience like with getElementsByProperty('element', element); if
 // any rendering is involved...
 // NOTE: items don't get enriched if there is a propery parentNode present
+
+moveCallback:
+// like subscribe() but for all actions like 'appendChild', 'insertBefore', ...
 
 preRecursionCallback: function(item) {},
 // same as above but it will be called before the childNodes are processed.
