@@ -93,7 +93,7 @@ A more complex model could look like this:
     }, ...]
 }, ...];
 ```
-Combined with ```options.enhanceMap['text', 'isOpen']``` This will end up in a model like:
+Combined with ```options.listeners['text', 'isOpen']``` This will end up in a model like:
 ```javascript
 [{
     text: (...), // 'Root item 0',
@@ -123,11 +123,11 @@ idProperty: 'id',
 
 subscribe: function(property, item, value, oldValue) {},
 // This is actually the key callback that makes VOM so valuable and convenient to be used.
-// All properties in the model that have been enhanced by being defined in options.enhanceMap,
+// All properties in the model that have been enhanced by being defined in options.listeners,
 // through options.enhanceAll and methods called to manipulate the order in the model (like
 // appendChild, replaceChild, ...) if changed, will trigger this callback to be called.
-// removeChild() also triggers the setterCallback.
-// 'property' will deliver the property that was changed and defined in options.enhanceMap or the 
+// removeChild() also triggers the subscribe.
+// 'property' will deliver the property that was changed and defined in options.listeners or the 
 // method called to manipulate the model. In case options.enhanceAll is set to true,
 // all properties in the model being changed in the model would trigger this function and
 // deliver its name in property.
@@ -138,7 +138,7 @@ subscribe: function(property, item, value, oldValue) {},
 
 listeners: [],
 // as described above, this is an Array of Strings that hold the keys of the model that should trigger
-// setterCallback() when its value was changed
+// subscribe() when its value was changed
 // Wildcards '*' can be used in root or in more complex structures like foo.bar.* or foo.*.value
 
 childNodes: 'childNodes',
@@ -222,7 +222,7 @@ destroy()
 // Removes all items from the model and cleans up internal models for garbage collection.
 ```
 
-'Enhancement' means that all properties that are defined in ```options.enhanceMap``` will be handled in setterCallback. It also means that the ```id``` will be given automatically if not defined in the model and also be set to readonly, ```parentElement``` will be set automatically and be handled in ```setterCallback``` and finally ```index``` will be added to the model to determine the position of the element compared to its siblings.
+'Enhancement' means that all properties that are defined in ```options.listeners``` will be handled in subscribe. It also means that the ```id``` will be given automatically if not defined in the model and also be set to readonly, ```parentElement``` will be set automatically and be handled in ```subscribe``` and finally ```index``` will be added to the model to determine the position of the element compared to its siblings.
 
 ```childNodes``` doesn't have to be set initially if there are no child nodes, but it will be set automatically if methods like ```appendChild()``` or ```prependChild()``` were called and there were no previous child nodes present in its parent.
 
@@ -235,8 +235,8 @@ var model = [{
 }];
 
 var vom = new VOM(model, {
-    enhanceMap: ['foo'],
-    setterCallback: function(property, object, value, oldValue) {
+    listeners: ['foo'],
+    subscribe: function(property, object, value, oldValue) {
         if (property === 'foo') {
             console.log("'foo' was changed from '" + oldValue + "' to '" + value + "'");
         }
