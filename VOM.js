@@ -243,7 +243,7 @@ function addProperty(_this, property, item, path, readonly) {
   return defineProperty(_this, property, item, cache, !readonly, path);
 }
 
-function enhanceModel(_this, model, listeners, recursivePath, recursiveModel) {
+function enhanceModel(_this, model, listeners, recPath, recModel) {
   var listener = [],
     wildcardPos = 0,
     lastIsWildcard = false,
@@ -256,8 +256,8 @@ function enhanceModel(_this, model, listeners, recursivePath, recursiveModel) {
     listener = listeners[n]; // array of strings
     wildcardPos = listener.indexOf('*');
     lastIsWildcard = wildcardPos === listener.length - 1;
-    path = (recursivePath || '') + listener.join('.');
-    deepModel = recursiveModel || crawlObject(model, listener);
+    path = (recPath || '') + listener.join('.');
+    deepModel = recModel || crawlObject(model, listener);
 
     if (lastIsWildcard || wildcardPos > 0 && listener.length > 1) {
       for (var item in deepModel) {
@@ -274,7 +274,7 @@ function enhanceModel(_this, model, listeners, recursivePath, recursiveModel) {
       }
     } else {
       addProperty(_this, listener[listener.length - 1],
-        { current: recursiveModel ? deepModel : model, root: model }, path);
+        { current: recModel ? deepModel : model, root: model }, path);
     }
   }
   return model;
@@ -296,22 +296,20 @@ function defineProperty(_this, prop, obj, cache, enumable, path) {
       return prop === 'index' ? indexOf(_this, obj.current) : cache[prop];
     },
     set: function(value) {
-      var  oldValue = cache[prop];
-
-      cache[prop] = value;
-      validate((path || prop), obj, value, oldValue, cache, _this);
+      validate((path || prop), obj, cache[prop],
+        cache[prop] = value, cache, _this);
     },
     enumerable: enumable
   });
 }
 
-function validate(prop, obj, value, oldValue, cache, _this) {
+function validate(prop, obj, oldValue, value, cache, _this) {
   if (prop === _this.options.idProperty || prop === 'index' ||
     _this.options.subscribe.call(_this, _this.type ||
         prop, obj.root || obj.current, value, oldValue, _this.sibling)) {
       cache[prop] = oldValue; // return value if not allowed
-      error('ERROR: Cannot set property \'' + prop + '\' to \'' +
-        value + '\'', _this.options);
+      error('ERROR: Cannot set property "' + prop + '" to "' +
+        value + '"', _this.options);
   }
   delete _this.type;
   delete _this.sibling;
